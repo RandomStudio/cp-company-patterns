@@ -57,8 +57,13 @@ const initGraphics = (app: PIXI.Application) => {
   );
 
   let colorMatrix = new PIXI.filters.ColorMatrixFilter();
-  foreground.filters = [colorMatrix];
-  colorMatrix.blackAndWhite(true);
+  colorMatrix.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+  colorMatrix.contrast(0.8, false);
+  tilingSprite.filters = [colorMatrix];
+  // foreground.alpha = 0.5;
+  // colorMatrix.blackAndWhite(true);
+
+  // tilingSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
 
   foreground.addChild(tilingSprite);
 
