@@ -58,4 +58,9 @@ const initGraphics = (app: PIXI.Application) => {
   container.addChild(tilingSprite);
 
   app.stage.addChild(container);
+
+  app.ticker.add(() => {
+    tilingSprite.tilePosition.x +=1;
+    tilingSprite.tilePosition.y +=2;
+  })
 }
