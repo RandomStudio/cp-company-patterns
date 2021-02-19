@@ -51,6 +51,10 @@ const initGraphics = (app: PIXI.Application) => {
     app.screen.height,
   );
 
+  let colorMatrix = new PIXI.filters.ColorMatrixFilter();
+  container.filters = [colorMatrix];
+  colorMatrix.blackAndWhite(true);
+
   container.addChild(tilingSprite);
 
   app.stage.addChild(container);
