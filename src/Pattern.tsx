@@ -38,40 +38,51 @@ export const Pattern: React.FunctionComponent<PatternProps> = (
 export default Pattern;
 
 const initGraphics = (app: PIXI.Application) => {
-  const [foreground, background] = [new PIXI.Container(), new PIXI.Container()];
+  const { width, height } = app.screen;
 
   const graphics = new PIXI.Graphics();
 
   graphics.beginFill(0x95300a);
-  graphics.drawRect(0, 0, app.screen.width, app.screen.height);
+  graphics.drawRect(0, 0, width, height);
   graphics.endFill();
 
-  background.addChild(graphics);
+  app.stage.addChild(graphics);
 
-  const texture = PIXI.Texture.from("/products/ART45184Q59.JPG");
+  const productTexture = PIXI.Texture.from("/products/ART45184Q59.JPG");
 
-  const tilingSprite = new PIXI.TilingSprite(
-    texture,
-    app.screen.width,
-    app.screen.height
-  );
+  const tilingSprite = new PIXI.TilingSprite(productTexture, width, height);
 
   let colorMatrix = new PIXI.filters.ColorMatrixFilter();
-  colorMatrix.blendMode = PIXI.BLEND_MODES.MULTIPLY;
-  colorMatrix.contrast(0.8, false);
+
+  const foregroundContainer = new PIXI.Container();
+  const renderTexture = PIXI.RenderTexture.create({
+    width,
+    height,
+  });
+
+  // colorMatrix.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+  colorMatrix.blackAndWhite(true);
+  colorMatrix.contrast(1.0, true);
+
   tilingSprite.filters = [colorMatrix];
   // foreground.alpha = 0.5;
   // colorMatrix.blackAndWhite(true);
 
-  // tilingSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+  // tilingSprite.blendMode = PIXI.BKLEND_MODES.MULTIPLY;
 
-  foreground.addChild(tilingSprite);
+  // foreground.filters = [noiseFilter];
 
-  app.stage.addChild(background);
-  app.stage.addChild(foreground);
+  foregroundContainer.addChild(tilingSprite);
+  app.renderer.render(foregroundContainer, renderTexture, true);
+
+  const foregroundSprite = new PIXI.Sprite(renderTexture);
+  foregroundSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+
+  app.stage.addChild(foregroundSprite);
 
   app.ticker.add(() => {
     tilingSprite.tilePosition.x += 1;
     tilingSprite.tilePosition.y += 2;
+    app.renderer.render(foregroundContainer, renderTexture, true);
   });
 };
