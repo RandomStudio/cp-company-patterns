@@ -24,14 +24,7 @@ export const Pattern: React.FunctionComponent<PatternProps> = (props: PatternPro
     }
     app.start();
 
-    const graphics = new PIXI.Graphics();
-
-    // Rectangle
-    graphics.beginFill(0xDE3249);
-    graphics.drawRect(50, 50, 100, 100);
-    graphics.endFill();
-
-    app.stage.addChild(graphics);
+    initGraphics(app);
 
     return () => {
       app.destroy(true);
@@ -46,3 +39,19 @@ export const Pattern: React.FunctionComponent<PatternProps> = (props: PatternPro
 }
 
 export default Pattern;
+
+const initGraphics = (app: PIXI.Application) => {
+  const container = new PIXI.Container();
+
+  const texture = PIXI.Texture.from("/products/ART45184Q59.JPG");
+
+  const tilingSprite = new PIXI.TilingSprite(
+    texture,
+    app.screen.width,
+    app.screen.height,
+  );
+
+  container.addChild(tilingSprite);
+
+  app.stage.addChild(container);
+}
