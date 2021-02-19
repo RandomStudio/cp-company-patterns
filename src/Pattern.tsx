@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import * as PIXI from 'pixi.js';
 
 interface PatternProps {
@@ -8,37 +8,40 @@ interface PatternProps {
   }
 }
 
-export default class Pattern extends React.Component<PatternProps, any> {
+export const Pattern: React.FunctionComponent<PatternProps> = (props: PatternProps) => {
 
-  private canvasRef: React.RefObject<HTMLCanvasElement>;
-  private app: PIXI.Application | null;
+  const ref = useRef(null);
 
-  constructor(props: PatternProps) {
-    super(props);
-    this.canvasRef = React.createRef();
-    this.app = null;
-  }
+  useEffect(() => {
+    const app = new PIXI.Application({
+        width: props.canvasSize.width,
+        height: props.canvasSize.height,
+        backgroundColor: 0x000055
+    })
 
-  componentDidMount = () => {
-    this.app = new PIXI.Application({
-      view: this.canvasRef.current !== null ? this.canvasRef.current : undefined,
-      backgroundColor: 0x000022,
-      width: this.props.canvasSize.width,
-      height: this.props.canvasSize.height
-    });
-    
+    //@ts-ignore
+    ref.current.appendChild(app.view);
+    app.start();
+
     const graphics = new PIXI.Graphics();
+
+    // Rectangle
     graphics.beginFill(0xDE3249);
     graphics.drawRect(50, 50, 100, 100);
     graphics.endFill();
 
-    this.app.stage.addChild(graphics);
-  }
+    app.stage.addChild(graphics);
 
-  render = () => (
-    <div style={{ height: this.props.canvasSize.height }}>
-      <canvas ref={this.canvasRef} style={{ position: 'absolute', top: 0, left: 0}}></canvas>
-    </div>
+    return () => {
+      app.destroy(true);
+    }
+  })
+  
+
+  return (
+    <div ref={ref}></div>
   )
 
 }
+
+export default Pattern;
