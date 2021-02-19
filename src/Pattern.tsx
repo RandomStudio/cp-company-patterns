@@ -52,6 +52,7 @@ const initGraphics = (app: PIXI.Application) => {
 
   loader.add("product", "/products/ART45184Q59.JPG");
   loader.add("grainShader", "/shaders/grain.frag");
+  loader.add("thresholdShader", "/shaders/threshold.frag");
 
   // let tilingSprite: PIXI.TilingSprite;
   // let foregroundContainer: PIXI.Container;
@@ -62,7 +63,9 @@ const initGraphics = (app: PIXI.Application) => {
       resources.product &&
       resources.product.texture &&
       resources.grainShader &&
-      resources.grainShader.data
+      resources.grainShader.data &&
+      resources.thresholdShader &&
+      resources.thresholdShader
     ) {
       const productTexture = resources.product.texture;
       const x = productTexture.width * 0.4;
@@ -86,7 +89,15 @@ const initGraphics = (app: PIXI.Application) => {
         resources.grainShader.data,
         {
           random: 0.2567,
-          strength: 64.0,
+          strength: 16.0,
+        }
+      );
+
+      const threshold = new PIXI.Filter(
+        undefined,
+        resources.thresholdShader.data,
+        {
+          cutoff: 0.75,
         }
       );
 
@@ -95,7 +106,7 @@ const initGraphics = (app: PIXI.Application) => {
       // colorMatrix.brightness(0.2, true);
       // colorMatrix.kodachrome(true);
 
-      tilingSprite.filters = [colorMatrix, grainEffect];
+      tilingSprite.filters = [colorMatrix, grainEffect, threshold];
       // tilingSprite.scale.x = 2.0;
       // tilingSprite.scale.y = 2.0;
 
