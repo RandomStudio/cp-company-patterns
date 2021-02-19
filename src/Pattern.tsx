@@ -10,7 +10,7 @@ interface PatternProps {
 
 export const Pattern: React.FunctionComponent<PatternProps> = (props: PatternProps) => {
 
-  const ref = useRef(null);
+  const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
 
   useEffect(() => {
     const app = new PIXI.Application({
@@ -19,8 +19,9 @@ export const Pattern: React.FunctionComponent<PatternProps> = (props: PatternPro
         backgroundColor: 0x000055
     })
 
-    //@ts-ignore
-    ref.current.appendChild(app.view);
+    if (ref.current) {
+      ref.current.appendChild(app.view);
+    }
     app.start();
 
     const graphics = new PIXI.Graphics();
