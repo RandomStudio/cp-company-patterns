@@ -119,8 +119,8 @@ const initGraphics = (app: PIXI.Application) => {
       app.stage.addChild(foregroundSprite);
 
       app.ticker.add(() => {
-        // tilingSprite.tilePosition.x += 1;
-        // tilingSprite.tilePosition.y += 1;
+        tilingSprite.tilePosition.x += 1;
+        tilingSprite.tilePosition.y += 1;
         app.renderer.render(foregroundContainer, renderTexture, true);
       });
     } else {
