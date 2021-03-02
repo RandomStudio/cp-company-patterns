@@ -6,11 +6,11 @@ Created with `create-react-app` - more details [here](./README_CREATE_REACT_APP)
 
 ```
 yarn install
-yarn run start
+yarn start
 ```
 
 ## TODO
 
-- Pick a representative colour background/overlay from the original image/garment/fabric instead of manual colour (Andrew H did something like this recently?)
+- Pick a representative colour background/overlay from the original image/garment/fabric instead of manual colour (Philip G)
 - Attempt to select "salient feature" position in order to scale and crop appropriately on image (ML?)
 - Automatically set threshold to appropriate level
