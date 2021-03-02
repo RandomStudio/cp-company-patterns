@@ -10,6 +10,8 @@
     "@types/node": "^14.14.30",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.1",
+    "colorthief": "^2.3.2",
+    "hex-color-utils": "^0.0.3",
     "pixi.js": "^5.3.7",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",

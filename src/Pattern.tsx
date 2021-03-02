@@ -1,6 +1,11 @@
 import React, { useRef, useEffect } from "react";
 import * as PIXI from "pixi.js";
 
+// @ts-ignore
+import ColorThief from "colorthief";
+
+import { fromRGB } from "hex-color-utils";
+
 interface PatternProps {
   canvasSize: {
     width: number;
@@ -40,14 +45,6 @@ export default Pattern;
 const initGraphics = (app: PIXI.Application) => {
   const { width, height } = app.screen;
 
-  const graphics = new PIXI.Graphics();
-
-  graphics.beginFill(0x95300a);
-  graphics.drawRect(0, 0, width, height);
-  graphics.endFill();
-
-  app.stage.addChild(graphics);
-
   const loader = new PIXI.Loader();
 
   loader.add("product", "/products/ART45184Q59.JPG");
@@ -58,7 +55,7 @@ const initGraphics = (app: PIXI.Application) => {
   // let foregroundContainer: PIXI.Container;
   // let renderTexture: PIXI.RenderTexture;
 
-  loader.load((loaders, resources) => {
+  loader.load(async (loaders, resources) => {
     if (
       resources.product &&
       resources.product.texture &&
@@ -73,6 +70,22 @@ const initGraphics = (app: PIXI.Application) => {
       const w = productTexture.width * 0.25;
       const h = productTexture.height * 0.25;
       productTexture.frame = new PIXI.Rectangle(x, y, w, h);
+
+      const colorThief = new ColorThief();
+      try {
+        const colours = await colorThief.getColor(resources.product.data);
+        const [r, g, b] = colours.map((c: number) => c / 255.0);
+        console.log("got colours:", { colours, r, g, b }, fromRGB(r, g, b));
+        const graphics = new PIXI.Graphics();
+
+        graphics.beginFill(fromRGB(r, g, b));
+        graphics.drawRect(0, 0, width, height);
+        graphics.endFill();
+
+        app.stage.addChild(graphics);
+      } catch (e) {
+        console.error("colorThief error:", e);
+      }
 
       const tilingSprite = new PIXI.TilingSprite(productTexture, width, height);
 
