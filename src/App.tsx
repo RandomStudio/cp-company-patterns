@@ -7,6 +7,10 @@ const backgroundSources = [
   "/products/ARCH_.jpg",
   "/products/ARCHCPMAN0_0000096_NNN.jpg",
   "/products/NO-CODE.JPG",
+  "/objects/Objecst_CP_Magazine_P-E-93.jpg",
+  "/objects/Objects_Berlin City Sound.jpg",
+  "/objects/Objects-machine.jpg",
+  "/objects/Objects-Notes_2.jpg",
 ];
 
 const App: React.FunctionComponent<{}> = () => {
