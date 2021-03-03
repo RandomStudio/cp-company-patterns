@@ -11,6 +11,9 @@ interface PatternProps {
     width: number;
     height: number;
   };
+  image: {
+    src: string;
+  };
 }
 
 export const Pattern: React.FunctionComponent<PatternProps> = (
@@ -30,7 +33,7 @@ export const Pattern: React.FunctionComponent<PatternProps> = (
     }
     app.start();
 
-    initGraphics(app);
+    initGraphics(app, props.image);
 
     return () => {
       app.destroy(true);
@@ -42,12 +45,12 @@ export const Pattern: React.FunctionComponent<PatternProps> = (
 
 export default Pattern;
 
-const initGraphics = (app: PIXI.Application) => {
+const initGraphics = (app: PIXI.Application, img: PatternProps["image"]) => {
   const { width, height } = app.screen;
 
   const loader = new PIXI.Loader();
 
-  loader.add("product", "/products/ART45184Q59.JPG");
+  loader.add("product", img.src);
   loader.add("grainShader", "/shaders/grain.frag");
   loader.add("thresholdShader", "/shaders/threshold.frag");
 
@@ -110,7 +113,7 @@ const initGraphics = (app: PIXI.Application) => {
         undefined,
         resources.thresholdShader.data,
         {
-          cutoff: 0.75,
+          cutoff: 0.5,
         }
       );
 

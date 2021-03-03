@@ -12,6 +12,7 @@
     "@types/react-dom": "^17.0.1",
     "colorthief": "^2.3.2",
     "hex-color-utils": "^0.0.3",
+    "node-sass": "^5.0.0",
     "pixi.js": "^5.3.7",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
