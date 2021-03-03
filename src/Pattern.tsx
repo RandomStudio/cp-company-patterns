@@ -85,13 +85,13 @@ const findCrop = (
   canvasSize: { width: number; height: number },
   texture: PIXI.Texture
 ) => {
-  const x = texture.baseTexture.width * 0.4;
-  const y = texture.baseTexture.height * 0.4;
-
   const screenAspect = canvasSize.width / canvasSize.height;
 
-  const w = texture.baseTexture.width * 0.3;
+  const w = texture.baseTexture.width * 0.5;
   const h = w / screenAspect;
+
+  const x = texture.baseTexture.width * 0.5 - w / 2;
+  const y = texture.baseTexture.height * 0.5 - h / 2;
   texture.frame = new PIXI.Rectangle(x, y, w, h);
 };
 
