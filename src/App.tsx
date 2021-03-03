@@ -11,6 +11,7 @@ const backgroundSources = [
 
 const App: React.FunctionComponent<{}> = () => {
   const [bgSourceIndex, setBgSource] = useState(0);
+  const [alpha, setAlpha] = useState(1.0);
 
   const currentSrc = backgroundSources[bgSourceIndex];
 
@@ -19,6 +20,7 @@ const App: React.FunctionComponent<{}> = () => {
       <Pattern
         canvasSize={{ width: window.innerWidth, height: window.innerHeight }}
         image={{ src: currentSrc }}
+        alpha={alpha}
       />
       <div className="ui">
         <button
@@ -28,7 +30,17 @@ const App: React.FunctionComponent<{}> = () => {
         >
           Change background
         </button>
+
         <img src={currentSrc} alt="current texture source" />
+
+        <label htmlFor="alpha">Alpha</label>
+        <input
+          id="alpha"
+          type="number"
+          value={alpha}
+          step="0.1"
+          onChange={(e) => setAlpha(parseFloat(e.target.value))}
+        ></input>
       </div>
     </div>
   );

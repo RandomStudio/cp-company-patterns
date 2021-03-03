@@ -10,10 +10,15 @@
 
   img {
     max-width: 10vw;
-    display: block;
+  }
+
+  label {
+    color: white;
   }
 }
 
 .ui * {
   margin: 0.5em 0;
+  display: block;
+  font-size: x-small;
 }

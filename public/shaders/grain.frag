@@ -20,7 +20,7 @@ void main(void){
     
     // if(abs(uv.x - 0.5) < 0.002) {
     //     color = vec4(0.0);
-    // }
+    // }s
     
     if (uv.x > 0.5) {
     	grain = 1.0 - grain;

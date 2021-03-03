@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import * as PIXI from "pixi.js";
 
 // @ts-ignore
@@ -14,6 +14,7 @@ interface PatternProps {
   image: {
     src: string;
   };
+  alpha: number;
 }
 
 export const Pattern: React.FunctionComponent<PatternProps> = (
@@ -28,7 +29,7 @@ export const Pattern: React.FunctionComponent<PatternProps> = (
   app.start();
 
   loadResources(props.image).then((resources) => {
-    initGraphics(app, resources);
+    initGraphics(app, resources, props.alpha);
   });
 
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
@@ -96,7 +97,8 @@ const findCrop = (
 
 const initGraphics = async (
   app: PIXI.Application,
-  resources: Partial<Record<string, PIXI.LoaderResource>>
+  resources: Partial<Record<string, PIXI.LoaderResource>>,
+  foregroundAlpha: number
 ) => {
   const { width, height } = app.screen;
 
@@ -129,14 +131,14 @@ const initGraphics = async (
     });
 
     const grainEffect = new PIXI.Filter(undefined, resources.grainShader.data, {
-      random: 0.2567,
+      random: 0.456, // literally a magic number
       strength: 16.0,
     });
 
     const hsl = toHSLArray(dominantColour);
     console.log({ hsl });
 
-    const thresholdValue = hsl[2] * 1.1;
+    const thresholdValue = getThreshold(hsl);
 
     const threshold = new PIXI.Filter(
       undefined,
@@ -148,18 +150,16 @@ const initGraphics = async (
 
     colorMatrix.blackAndWhite(true);
     colorMatrix.contrast(0.2, true);
-    // colorMatrix.brightness(0.2, true);
-    // colorMatrix.kodachrome(true);
 
     sprite.filters = [grainEffect, colorMatrix, threshold];
-    // tilingSprite.scale.x = 2.0;
-    // tilingSprite.scale.y = 2.0;
 
     foregroundContainer.addChild(sprite);
     app.renderer.render(foregroundContainer, renderTexture, true);
 
     const foregroundSprite = new PIXI.Sprite(renderTexture);
     foregroundSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+
+    foregroundSprite.alpha = foregroundAlpha;
 
     app.stage.addChild(foregroundSprite);
 
@@ -169,8 +169,9 @@ const initGraphics = async (
     });
 
     // app.ticker.add(() => {
-    //   tilingSprite.tilePosition.x += 1;
-    //   tilingSprite.tilePosition.y += 1;
+    //   sprite.scale.x += sprite.scale.x * 0.001;
+    //   //   tilingSprite.tilePosition.x += 1;
+    //   //   tilingSprite.tilePosition.y += 1;
     //   app.renderer.render(foregroundContainer, renderTexture, true);
     // });
   }
@@ -188,12 +189,20 @@ const addDebugInfo = (
   const left = width * 0.75;
   const top = height * 0.05;
 
+  const radius = 16;
+
   const graphics = new PIXI.Graphics();
   graphics.beginFill(dominantColour);
   graphics.lineStyle(8, 0xffffff, 1);
   graphics.drawCircle(left, top, 16);
   graphics.endFill();
   app.stage.addChild(graphics);
+
+  const colourLabel = new PIXI.Text(`#${dominantColour.toString(16)}`);
+  colourLabel.style.fill = 0xffffff;
+  colourLabel.x = left + radius * 1.5;
+  colourLabel.y = top - radius / 2;
+  app.stage.addChild(colourLabel);
 
   const s = `
   Threshold value: ${thresholdValue.toFixed(2)}
@@ -205,5 +214,10 @@ const addDebugInfo = (
   text.y = top * 1.5;
   text.scale = new PIXI.Point(0.5, 0.5);
   text.style.fill = 0xffffff;
+  text.style.dropShadow = true;
   app.stage.addChild(text);
+};
+
+const getThreshold = (hsl: number[]) => {
+  return hsl[2];
 };
