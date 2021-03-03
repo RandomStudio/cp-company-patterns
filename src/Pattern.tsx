@@ -1,10 +1,10 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import * as PIXI from "pixi.js";
 
 // @ts-ignore
 import ColorThief from "colorthief";
 
-import { fromRGB } from "hex-color-utils";
+import { fromRGB, toHSLArray } from "hex-color-utils";
 
 interface PatternProps {
   canvasSize: {
@@ -19,23 +19,28 @@ interface PatternProps {
 export const Pattern: React.FunctionComponent<PatternProps> = (
   props: PatternProps
 ) => {
+  const app = new PIXI.Application({
+    width: props.canvasSize.width,
+    height: props.canvasSize.height,
+    backgroundColor: 0x000055,
+  });
+
+  app.start();
+
+  loadResources(props.image).then((resources) => {
+    initGraphics(app, resources);
+  });
+
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
 
   useEffect(() => {
-    const app = new PIXI.Application({
-      width: props.canvasSize.width,
-      height: props.canvasSize.height,
-      backgroundColor: 0x000055,
-    });
-
     if (ref.current) {
+      console.log("append app view");
       ref.current.appendChild(app.view);
     }
-    app.start();
-
-    initGraphics(app, props.image);
 
     return () => {
+      console.log("destroy PIXI app");
       app.destroy(true);
     };
   });
@@ -45,104 +50,109 @@ export const Pattern: React.FunctionComponent<PatternProps> = (
 
 export default Pattern;
 
-const initGraphics = (app: PIXI.Application, img: PatternProps["image"]) => {
+const loadResources = (
+  img: PatternProps["image"]
+): Promise<Partial<Record<string, PIXI.LoaderResource>>> =>
+  new Promise((resolve, reject) => {
+    console.log("new promise");
+    const loader = new PIXI.Loader();
+    // const loader = PIXI.Loader.shared;
+
+    loader
+      .add("product", img.src)
+      .add("grainShader", "/shaders/grain.frag")
+      .add("thresholdShader", "/shaders/threshold.frag");
+
+    loader.load((loaders, resources) => {
+      resolve(resources);
+    });
+
+    // loader.load();
+    loader.onComplete.add(() => {
+      console.log("done!");
+    });
+  });
+
+const getDominantColour = async (imgData: any) => {
+  const colorThief = new ColorThief();
+  const colours = await colorThief.getColor(imgData);
+  const [r, g, b] = colours.map((c: number) => c / 255.0);
+  return fromRGB(r, g, b);
+};
+
+const initGraphics = async (
+  app: PIXI.Application,
+  resources: Partial<Record<string, PIXI.LoaderResource>>
+) => {
   const { width, height } = app.screen;
 
-  const loader = new PIXI.Loader();
+  if (resources.product && resources.grainShader && resources.thresholdShader) {
+    const productTexture = resources.product.texture;
+    const x = productTexture.width * 0.4;
+    const y = productTexture.height * 0.4;
+    const w = productTexture.width * 0.25;
+    const h = productTexture.height * 0.25;
+    productTexture.frame = new PIXI.Rectangle(x, y, w, h);
 
-  loader.add("product", img.src);
-  loader.add("grainShader", "/shaders/grain.frag");
-  loader.add("thresholdShader", "/shaders/threshold.frag");
+    let dominantColour = await getDominantColour(resources.product.data);
 
-  // let tilingSprite: PIXI.TilingSprite;
-  // let foregroundContainer: PIXI.Container;
-  // let renderTexture: PIXI.RenderTexture;
+    const graphics = new PIXI.Graphics();
 
-  loader.load(async (loaders, resources) => {
-    if (
-      resources.product &&
-      resources.product.texture &&
-      resources.grainShader &&
-      resources.grainShader.data &&
-      resources.thresholdShader &&
-      resources.thresholdShader
-    ) {
-      const productTexture = resources.product.texture;
-      const x = productTexture.width * 0.4;
-      const y = productTexture.height * 0.4;
-      const w = productTexture.width * 0.25;
-      const h = productTexture.height * 0.25;
-      productTexture.frame = new PIXI.Rectangle(x, y, w, h);
+    graphics.beginFill(dominantColour);
+    graphics.drawRect(0, 0, width, height);
+    graphics.endFill();
 
-      const colorThief = new ColorThief();
-      try {
-        const colours = await colorThief.getColor(resources.product.data);
-        const [r, g, b] = colours.map((c: number) => c / 255.0);
-        console.log("got colours:", { colours, r, g, b }, fromRGB(r, g, b));
-        const graphics = new PIXI.Graphics();
+    app.stage.addChild(graphics);
 
-        graphics.beginFill(fromRGB(r, g, b));
-        graphics.drawRect(0, 0, width, height);
-        graphics.endFill();
+    const tilingSprite = new PIXI.TilingSprite(productTexture, width, height);
 
-        app.stage.addChild(graphics);
-      } catch (e) {
-        console.error("colorThief error:", e);
+    let colorMatrix = new PIXI.filters.ColorMatrixFilter();
+
+    const foregroundContainer = new PIXI.Container();
+    const renderTexture = PIXI.RenderTexture.create({
+      width,
+      height,
+    });
+
+    const grainEffect = new PIXI.Filter(undefined, resources.grainShader.data, {
+      random: 0.2567,
+      strength: 16.0,
+    });
+
+    const hsl = toHSLArray(dominantColour);
+    console.log({ hsl });
+
+    const threshold = new PIXI.Filter(
+      undefined,
+      resources.thresholdShader.data,
+      {
+        cutoff: hsl[2] * 1.1,
       }
+    );
 
-      const tilingSprite = new PIXI.TilingSprite(productTexture, width, height);
+    colorMatrix.blackAndWhite(true);
+    colorMatrix.contrast(0.2, true);
+    // colorMatrix.brightness(0.2, true);
+    // colorMatrix.kodachrome(true);
 
-      let colorMatrix = new PIXI.filters.ColorMatrixFilter();
+    tilingSprite.filters = [grainEffect, colorMatrix, threshold];
+    // tilingSprite.scale.x = 2.0;
+    // tilingSprite.scale.y = 2.0;
 
-      const foregroundContainer = new PIXI.Container();
-      const renderTexture = PIXI.RenderTexture.create({
-        width,
-        height,
-      });
+    foregroundContainer.addChild(tilingSprite);
+    app.renderer.render(foregroundContainer, renderTexture, true);
 
-      const grainEffect = new PIXI.Filter(
-        undefined,
-        resources.grainShader.data,
-        {
-          random: 0.2567,
-          strength: 16.0,
-        }
-      );
+    const foregroundSprite = new PIXI.Sprite(renderTexture);
+    foregroundSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
 
-      const threshold = new PIXI.Filter(
-        undefined,
-        resources.thresholdShader.data,
-        {
-          cutoff: 0.5,
-        }
-      );
+    app.stage.addChild(foregroundSprite);
 
-      colorMatrix.blackAndWhite(true);
-      colorMatrix.contrast(0.2, true);
-      // colorMatrix.brightness(0.2, true);
-      // colorMatrix.kodachrome(true);
-
-      tilingSprite.filters = [colorMatrix, grainEffect, threshold];
-      // tilingSprite.scale.x = 2.0;
-      // tilingSprite.scale.y = 2.0;
-
-      foregroundContainer.addChild(tilingSprite);
-      app.renderer.render(foregroundContainer, renderTexture, true);
-
-      const foregroundSprite = new PIXI.Sprite(renderTexture);
-      foregroundSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
-
-      app.stage.addChild(foregroundSprite);
-
-      app.ticker.add(() => {
-        tilingSprite.tilePosition.x += 1;
-        tilingSprite.tilePosition.y += 1;
-        app.renderer.render(foregroundContainer, renderTexture, true);
-      });
-    } else {
-      console.error("resource loading problem");
-    }
-  });
+    // app.ticker.add(() => {
+    //   tilingSprite.tilePosition.x += 1;
+    //   tilingSprite.tilePosition.y += 1;
+    //   app.renderer.render(foregroundContainer, renderTexture, true);
+    // });
+  }
 
   // const productTexture = PIXI.Texture.from(;
 };
