@@ -26,9 +26,9 @@ const App: React.FunctionComponent<{}> = () => {
             setBgSource((bgSourceIndex + 1) % backgroundSources.length);
           }}
         >
-          Change Background
+          Change background
         </button>
-        <img src={currentSrc} />
+        <img src={currentSrc} alt="current texture source" />
       </div>
     </div>
   );

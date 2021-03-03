@@ -80,6 +80,20 @@ const getDominantColour = async (imgData: any) => {
   return fromRGB(r, g, b);
 };
 
+const findCrop = (
+  canvasSize: { width: number; height: number },
+  texture: PIXI.Texture
+) => {
+  const x = texture.baseTexture.width * 0.4;
+  const y = texture.baseTexture.height * 0.4;
+
+  const screenAspect = canvasSize.width / canvasSize.height;
+
+  const w = texture.baseTexture.width * 0.3;
+  const h = w / screenAspect;
+  texture.frame = new PIXI.Rectangle(x, y, w, h);
+};
+
 const initGraphics = async (
   app: PIXI.Application,
   resources: Partial<Record<string, PIXI.LoaderResource>>
@@ -87,12 +101,10 @@ const initGraphics = async (
   const { width, height } = app.screen;
 
   if (resources.product && resources.grainShader && resources.thresholdShader) {
+    // console.log("got resources", resources);
     const productTexture = resources.product.texture;
-    const x = productTexture.width * 0.4;
-    const y = productTexture.height * 0.4;
-    const w = productTexture.width * 0.25;
-    const h = productTexture.height * 0.25;
-    productTexture.frame = new PIXI.Rectangle(x, y, w, h);
+    console.log({ productTexture });
+    findCrop({ width, height }, productTexture);
 
     let dominantColour = await getDominantColour(resources.product.data);
 
@@ -104,7 +116,9 @@ const initGraphics = async (
 
     app.stage.addChild(graphics);
 
-    const tilingSprite = new PIXI.TilingSprite(productTexture, width, height);
+    const sprite = new PIXI.Sprite(productTexture);
+    sprite.width = width;
+    sprite.height = height;
 
     let colorMatrix = new PIXI.filters.ColorMatrixFilter();
 
@@ -122,11 +136,13 @@ const initGraphics = async (
     const hsl = toHSLArray(dominantColour);
     console.log({ hsl });
 
+    const thresholdValue = hsl[2] * 1.1;
+
     const threshold = new PIXI.Filter(
       undefined,
       resources.thresholdShader.data,
       {
-        cutoff: hsl[2] * 1.1,
+        cutoff: thresholdValue,
       }
     );
 
@@ -135,17 +151,22 @@ const initGraphics = async (
     // colorMatrix.brightness(0.2, true);
     // colorMatrix.kodachrome(true);
 
-    tilingSprite.filters = [grainEffect, colorMatrix, threshold];
+    sprite.filters = [grainEffect, colorMatrix, threshold];
     // tilingSprite.scale.x = 2.0;
     // tilingSprite.scale.y = 2.0;
 
-    foregroundContainer.addChild(tilingSprite);
+    foregroundContainer.addChild(sprite);
     app.renderer.render(foregroundContainer, renderTexture, true);
 
     const foregroundSprite = new PIXI.Sprite(renderTexture);
     foregroundSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
 
     app.stage.addChild(foregroundSprite);
+
+    addDebugInfo(app, dominantColour, thresholdValue, {
+      width: productTexture.baseTexture.width,
+      height: productTexture.baseTexture.height,
+    });
 
     // app.ticker.add(() => {
     //   tilingSprite.tilePosition.x += 1;
@@ -155,4 +176,34 @@ const initGraphics = async (
   }
 
   // const productTexture = PIXI.Texture.from(;
+};
+
+const addDebugInfo = (
+  app: PIXI.Application,
+  dominantColour: number,
+  thresholdValue: number,
+  textureSize: { width: number; height: number }
+) => {
+  const { width, height } = app.screen;
+  const left = width * 0.75;
+  const top = height * 0.05;
+
+  const graphics = new PIXI.Graphics();
+  graphics.beginFill(dominantColour);
+  graphics.lineStyle(8, 0xffffff, 1);
+  graphics.drawCircle(left, top, 16);
+  graphics.endFill();
+  app.stage.addChild(graphics);
+
+  const s = `
+  Threshold value: ${thresholdValue.toFixed(2)}
+  Original texture size: ${textureSize.width} x ${textureSize.height}
+`;
+
+  const text = new PIXI.Text(s);
+  text.x = left;
+  text.y = top * 1.5;
+  text.scale = new PIXI.Point(0.5, 0.5);
+  text.style.fill = 0xffffff;
+  app.stage.addChild(text);
 };
