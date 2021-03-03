@@ -3,4 +3,17 @@
   top: 0;
   left: 0;
   margin: 1em;
+  padding: 1em;
+
+  max-width: 25vw;
+  background-color: rgba(0, 0, 0, 0.5);
+
+  img {
+    max-width: 10vw;
+    display: block;
+  }
+}
+
+.ui * {
+  margin: 0.5em 0;
 }

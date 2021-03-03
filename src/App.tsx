@@ -12,11 +12,13 @@ const backgroundSources = [
 const App: React.FunctionComponent<{}> = () => {
   const [bgSourceIndex, setBgSource] = useState(0);
 
+  const currentSrc = backgroundSources[bgSourceIndex];
+
   return (
     <div className="App">
       <Pattern
         canvasSize={{ width: window.innerWidth, height: window.innerHeight }}
-        image={{ src: backgroundSources[bgSourceIndex] }}
+        image={{ src: currentSrc }}
       />
       <div className="ui">
         <button
@@ -26,6 +28,7 @@ const App: React.FunctionComponent<{}> = () => {
         >
           Change Background
         </button>
+        <img src={currentSrc} />
       </div>
     </div>
   );
