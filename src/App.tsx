@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./App.scss";
-import Pattern, { PatternProps } from "./Pattern";
+import Pattern, { PatternSettings } from "./Pattern";
 
 const backgroundSources = [
   "/products/ART45184Q59.JPG",
@@ -16,20 +16,14 @@ const backgroundSources = [
 const App: React.FunctionComponent<{}> = () => {
   const [bgSourceIndex, setBgSource] = useState(0);
 
-  const currentSrc = backgroundSources[bgSourceIndex];
+  // const currentSrc = backgroundSources[bgSourceIndex];
 
-  const [settings, setSettings] = useState<PatternProps>({
-    image: {
-      src: currentSrc,
-    },
-    canvasSize: {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    },
+  const [settings, setSettings] = useState<PatternSettings>({
     overlay: {
       alpha: 1.0,
     },
     grain: {
+      useRandom: false,
       magicNumber: 0.456,
       strength: 16.0,
     },
@@ -37,7 +31,11 @@ const App: React.FunctionComponent<{}> = () => {
 
   return (
     <div className="App">
-      <Pattern {...settings} />
+      <Pattern
+        image={{ src: backgroundSources[bgSourceIndex] }}
+        canvasSize={{ width: window.innerWidth, height: window.innerHeight }}
+        settings={{ ...settings }}
+      />
       <div className="ui">
         <button
           onClick={() => {
@@ -46,9 +44,11 @@ const App: React.FunctionComponent<{}> = () => {
         >
           Change background
         </button>
-
-        <img src={currentSrc} alt="current texture source" />
-
+        <img
+          src={backgroundSources[bgSourceIndex]}
+          alt="current texture source"
+        />
+        <h1>Overlay Effect</h1>
         <label htmlFor="alpha">Alpha</label>
         <input
           id="alpha"
@@ -64,6 +64,65 @@ const App: React.FunctionComponent<{}> = () => {
             })
           }
         ></input>
+        <h1>Grain Effect</h1>
+        <input
+          type="checkbox"
+          id="random"
+          value={settings.grain.useRandom === true ? "checked" : "unchecked"}
+          onChange={(e) =>
+            setSettings({
+              ...settings,
+              grain: {
+                ...settings.grain,
+                useRandom: e.target.checked === true,
+              },
+            })
+          }
+        />
+
+        <label htmlFor="random">Use random</label>
+
+        <div
+          style={{
+            display: settings.grain.useRandom === true ? "none" : "block",
+          }}
+        >
+          <label htmlFor="strength">Magic number</label>
+          <input
+            type="number"
+            step="0.1"
+            id="strength"
+            value={settings.grain.magicNumber}
+            onChange={(e) =>
+              setSettings({
+                ...settings,
+                grain: {
+                  ...settings.grain,
+                  magicNumber: parseFloat(e.target.value),
+                },
+              })
+            }
+          />
+        </div>
+
+        <div>
+          <label htmlFor="strength">Noise strength</label>
+          <input
+            type="number"
+            step="0.1"
+            id="strength"
+            value={settings.grain.strength}
+            onChange={(e) =>
+              setSettings({
+                ...settings,
+                grain: {
+                  ...settings.grain,
+                  strength: parseFloat(e.target.value),
+                },
+              })
+            }
+          />
+        </div>
       </div>
     </div>
   );

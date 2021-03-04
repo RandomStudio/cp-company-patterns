@@ -11,18 +11,23 @@ interface Size {
   height: number;
 }
 
+export interface PatternSettings {
+  overlay: {
+    alpha: number;
+  };
+  grain: {
+    useRandom: boolean;
+    magicNumber: number;
+    strength: number;
+  };
+}
+
 export interface PatternProps {
   canvasSize: Size;
   image: {
     src: string;
   };
-  overlay: {
-    alpha: number;
-  };
-  grain: {
-    magicNumber: number | null;
-    strength: number;
-  };
+  settings: PatternSettings;
 }
 
 export const Pattern: React.FunctionComponent<PatternProps> = (
@@ -139,11 +144,10 @@ const initGraphics = async (
     });
 
     const grainEffect = new PIXI.Filter(undefined, resources.grainShader.data, {
-      random:
-        props.grain.magicNumber === null
-          ? Math.random()
-          : props.grain.magicNumber,
-      strength: props.grain.strength,
+      random: props.settings.grain.useRandom
+        ? Math.random()
+        : props.settings.grain.magicNumber,
+      strength: props.settings.grain.strength,
     });
 
     const hsl = toHSLArray(dominantColour);
@@ -170,7 +174,7 @@ const initGraphics = async (
     const foregroundSprite = new PIXI.Sprite(renderTexture);
     foregroundSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
 
-    foregroundSprite.alpha = props.overlay.alpha;
+    foregroundSprite.alpha = props.settings.overlay.alpha;
 
     app.stage.addChild(foregroundSprite);
 
