@@ -11,6 +11,7 @@ yarn start
 
 ## TODO
 
+- Add more controls
 - Pick a representative colour background/overlay from the original image/garment/fabric instead of manual colour (Philip G)
 - Attempt to select "salient feature" position in order to scale and crop appropriately on image (ML?)
 - Automatically set threshold to appropriate level

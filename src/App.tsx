@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./App.scss";
-import Pattern from "./Pattern";
+import Pattern, { PatternProps } from "./Pattern";
 
 const backgroundSources = [
   "/products/ART45184Q59.JPG",
@@ -15,17 +15,29 @@ const backgroundSources = [
 
 const App: React.FunctionComponent<{}> = () => {
   const [bgSourceIndex, setBgSource] = useState(0);
-  const [alpha, setAlpha] = useState(1.0);
 
   const currentSrc = backgroundSources[bgSourceIndex];
 
+  const [settings, setSettings] = useState<PatternProps>({
+    image: {
+      src: currentSrc,
+    },
+    canvasSize: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    },
+    overlay: {
+      alpha: 1.0,
+    },
+    grain: {
+      magicNumber: 0.456,
+      strength: 16.0,
+    },
+  });
+
   return (
     <div className="App">
-      <Pattern
-        canvasSize={{ width: window.innerWidth, height: window.innerHeight }}
-        image={{ src: currentSrc }}
-        alpha={alpha}
-      />
+      <Pattern {...settings} />
       <div className="ui">
         <button
           onClick={() => {
@@ -41,9 +53,16 @@ const App: React.FunctionComponent<{}> = () => {
         <input
           id="alpha"
           type="number"
-          value={alpha}
+          value={settings.overlay.alpha}
           step="0.1"
-          onChange={(e) => setAlpha(parseFloat(e.target.value))}
+          onChange={(e) =>
+            setSettings({
+              ...settings,
+              overlay: {
+                alpha: parseFloat(e.target.value),
+              },
+            })
+          }
         ></input>
       </div>
     </div>

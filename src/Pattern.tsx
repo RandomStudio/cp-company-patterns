@@ -6,15 +6,23 @@ import ColorThief from "colorthief";
 
 import { fromRGB, toHSLArray } from "hex-color-utils";
 
-interface PatternProps {
-  canvasSize: {
-    width: number;
-    height: number;
-  };
+interface Size {
+  width: number;
+  height: number;
+}
+
+export interface PatternProps {
+  canvasSize: Size;
   image: {
     src: string;
   };
-  alpha: number;
+  overlay: {
+    alpha: number;
+  };
+  grain: {
+    magicNumber: number | null;
+    strength: number;
+  };
 }
 
 export const Pattern: React.FunctionComponent<PatternProps> = (
@@ -29,7 +37,7 @@ export const Pattern: React.FunctionComponent<PatternProps> = (
   app.start();
 
   loadResources(props.image).then((resources) => {
-    initGraphics(app, resources, props.alpha);
+    initGraphics(app, resources, props);
   });
 
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
@@ -98,7 +106,7 @@ const findCrop = (
 const initGraphics = async (
   app: PIXI.Application,
   resources: Partial<Record<string, PIXI.LoaderResource>>,
-  foregroundAlpha: number
+  props: PatternProps
 ) => {
   const { width, height } = app.screen;
 
@@ -131,8 +139,11 @@ const initGraphics = async (
     });
 
     const grainEffect = new PIXI.Filter(undefined, resources.grainShader.data, {
-      random: 0.456, // literally a magic number
-      strength: 16.0,
+      random:
+        props.grain.magicNumber === null
+          ? Math.random()
+          : props.grain.magicNumber,
+      strength: props.grain.strength,
     });
 
     const hsl = toHSLArray(dominantColour);
@@ -159,7 +170,7 @@ const initGraphics = async (
     const foregroundSprite = new PIXI.Sprite(renderTexture);
     foregroundSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
 
-    foregroundSprite.alpha = foregroundAlpha;
+    foregroundSprite.alpha = props.overlay.alpha;
 
     app.stage.addChild(foregroundSprite);
 
