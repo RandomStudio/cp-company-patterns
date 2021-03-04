@@ -11,6 +11,14 @@ const backgroundSources = [
   "/objects/Objects_Berlin City_Sound.jpg",
   "/objects/Objects-machine.jpg",
   "/objects/Objects-Notes_2.jpg",
+  "/places/Cities-New_York.jpg",
+  "/places/Place_Barca(1986).jpg",
+  "/places/Place-Palazzo_Dello_Spagnolo_Napoli.JPG",
+  "/logos/Logos-Button_2.jpg",
+  "/logos/Logos-Button_5.jpg",
+  "/logos/Patches-CP_Lens.jpg",
+  "/logos/Patches-Garment_Dyed.jpg",
+  "/logos/Treams-11CMOW315A_006168A_999.jpg",
 ];
 
 const App: React.FunctionComponent<{}> = () => {
