@@ -18,8 +18,6 @@ interface Props {
 }
 
 export const Transitions = (props: Props) => {
-  useEffect(() => {});
-
   const app = new PIXI.Application({
     width: props.canvasSize.width,
     height: props.canvasSize.height,
