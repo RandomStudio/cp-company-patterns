@@ -76,8 +76,8 @@ export const Transitions = (props: Props) => {
   const app = new PIXI.Application({
     width: props.canvasSize.width,
     height: props.canvasSize.height,
-    // transparent: true,
-    backgroundColor: 0xff0000,
+    transparent: true,
+    // backgroundColor: 0xff0000,
   });
 
   const startTransition = (itemId: number, onDone: () => void) => {
@@ -138,8 +138,8 @@ export const Transitions = (props: Props) => {
               key={`item-${i.id}`}
               onClick={() => {
                 setActive(true);
-                setItemId(i.id);
                 startTransition(i.id, () => {
+                  setItemId(i.id);
                   setActive(false);
                 });
               }}
