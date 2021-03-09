@@ -3,6 +3,12 @@ import "./App.scss";
 
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import SimpleTest from "./SimpleTest";
+import Transitions from "./Transitions";
+
+export interface Size {
+  width: number;
+  height: number;
+}
 
 const App = () => {
   return (
@@ -12,7 +18,14 @@ const App = () => {
           <Route path="/static">
             <SimpleTest />
           </Route>
-          <Route path="/transition">TODO: transition prototype</Route>
+          <Route path="/transition">
+            <Transitions
+              canvasSize={{
+                width: window.innerWidth,
+                height: window.innerHeight,
+              }}
+            />
+          </Route>
           <Route path="/">
             <Home />
           </Route>

@@ -5,11 +5,7 @@ import * as PIXI from "pixi.js";
 import ColorThief from "colorthief";
 
 import { fromRGB, toHSLArray } from "hex-color-utils";
-
-interface Size {
-  width: number;
-  height: number;
-}
+import { Size } from "./App";
 
 export interface PatternSettings {
   overlay: {
