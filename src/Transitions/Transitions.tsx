@@ -4,15 +4,24 @@ import { Size } from "../App";
 import Item from "./Item";
 
 import "./Transitions.scss";
-import { PatternSettings } from "../SimpleTest/Pattern";
+import { findCrop, PatternSettings } from "../SimpleTest/Pattern";
 
-const items = [0, 1, 2, 5];
+const items = [
+  {
+    id: 0,
+    url: "/products/ARCH_.jpg",
+  },
+  {
+    id: 1,
+    url: "/products/NO-CODE.jpg",
+  },
+];
 interface Props {
   canvasSize: Size;
   settings: PatternSettings;
 }
 
-const loadShaders = (props: Props) =>
+const loadShaders = (props: Props): Promise<{ [key: string]: PIXI.Filter }> =>
   new Promise((resolve, reject) => {
     const loader = new PIXI.Loader();
 
@@ -41,6 +50,28 @@ const loadShaders = (props: Props) =>
     });
   });
 
+const loadItemTexture = (
+  url: string,
+  app: PIXI.Application
+): Promise<PIXI.Texture> =>
+  new Promise((resolve, reject) => {
+    const loader = new PIXI.Loader();
+    const { width, height } = app.screen;
+
+    loader.add("item", url);
+    loader.load((loader, resources) => {
+      if (resources.item) {
+        const itemTexture = resources.item.texture;
+
+        findCrop({ width, height }, itemTexture);
+
+        resolve(itemTexture);
+      } else {
+        reject("resources.item failed to load");
+      }
+    });
+  });
+
 export const Transitions = (props: Props) => {
   const app = new PIXI.Application({
     width: props.canvasSize.width,
@@ -50,7 +81,22 @@ export const Transitions = (props: Props) => {
   });
 
   const startTransition = (itemId: number, onDone: () => void) => {
-    console.log("starting transition to item", itemId);
+    const item = items.find((i) => i.id === itemId);
+
+    console.log("starting transition to item", item);
+    if (filters !== null) {
+      console.log("filters ready", filters);
+      if (item) {
+        console.log("loading item texture...");
+        loadItemTexture(item.url, app).then((texture) => {
+          const sprite = new PIXI.Sprite(texture);
+          const { width, height } = app.screen;
+          sprite.width = width;
+          sprite.height = height;
+          app.stage.addChild(sprite);
+        });
+      }
+    }
     setTimeout(() => {
       onDone();
     }, 2000);
@@ -58,8 +104,11 @@ export const Transitions = (props: Props) => {
 
   app.start();
 
-  loadShaders(props).then((filters) => {
-    console.log("loaded custom filters:", filters);
+  let filters: { [key: string]: PIXI.Filter } | null = null;
+
+  loadShaders(props).then((res: { [key: string]: PIXI.Filter }) => {
+    console.log("loaded custom filters:", res);
+    filters = res;
   });
 
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
@@ -86,16 +135,16 @@ export const Transitions = (props: Props) => {
         <ul>
           {items.map((i) => (
             <li
-              key={`item-${i}`}
+              key={`item-${i.id}`}
               onClick={() => {
                 setActive(true);
-                setItemId(i);
-                startTransition(i, () => {
+                setItemId(i.id);
+                startTransition(i.id, () => {
                   setActive(false);
                 });
               }}
             >
-              Item {i}
+              Item {i.id}
             </li>
           ))}
         </ul>

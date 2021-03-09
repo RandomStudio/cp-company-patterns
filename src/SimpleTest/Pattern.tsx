@@ -90,7 +90,7 @@ const getDominantColour = async (imgData: any) => {
   return fromRGB(r, g, b);
 };
 
-const findCrop = (
+export const findCrop = (
   canvasSize: { width: number; height: number },
   texture: PIXI.Texture
 ) => {
