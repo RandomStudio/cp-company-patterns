@@ -1,9 +1,13 @@
-import { useParams } from "react-router-dom";
+interface Props {
+  id: number;
+}
 
-const Item = () => {
-  const { itemId } = useParams<{ itemId: string }>();
-
-  return <div>This is item {itemId}</div>;
+const Item = (props: Props) => {
+  return (
+    <div>
+      <h2>This is item {props.id}</h2>
+    </div>
+  );
 };
 
 export default Item;
