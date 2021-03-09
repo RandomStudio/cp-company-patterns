@@ -26,6 +26,10 @@ export const Transitions = (props: Props) => {
     transparent: true,
   });
 
+  const startTransition = (itemId?: number) => {
+    console.log("starting transition to item", itemId);
+  };
+
   app.start();
 
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
@@ -48,7 +52,7 @@ export const Transitions = (props: Props) => {
     <div className="Transitions">
       <h1>Transitions Demo</h1>
       <Route exact path={path}>
-        <Grid />
+        <Grid startTransitionFunction={startTransition} />
       </Route>
       <Route path={`${path}/:itemId`}>
         <Item />

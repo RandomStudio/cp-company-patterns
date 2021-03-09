@@ -1,18 +1,31 @@
 import { useRouteMatch } from "react-router";
 import { Link } from "react-router-dom";
 
-const Grid = () => {
+const items = [0, 1, 2];
+
+interface Props {
+  startTransitionFunction: (itemId?: number) => void;
+}
+
+const Grid = (props: Props) => {
   const { url } = useRouteMatch();
   return (
     <div>
       Grid items:
       <ul>
-        <li>
-          <Link to={`${url}/1`}>Item 1</Link>
-        </li>
-        <li>
-          <Link to={`${url}/2`}>Item 2</Link>
-        </li>
+        {items.map((i) => (
+          <li key={`grid-item-${i}`}>
+            <Link
+              onClick={() => {
+                console.log("start transition!");
+                props.startTransitionFunction(i);
+              }}
+              to={`${url}/${i}`}
+            >
+              Item {i}
+            </Link>
+          </li>
+        ))}
       </ul>
     </div>
   );
