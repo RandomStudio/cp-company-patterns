@@ -4,11 +4,42 @@ import { Size } from "../App";
 import Item from "./Item";
 
 import "./Transitions.scss";
+import { PatternSettings } from "../SimpleTest/Pattern";
 
 const items = [0, 1, 2, 5];
 interface Props {
   canvasSize: Size;
+  settings: PatternSettings;
 }
+
+const loadShaders = (props: Props) =>
+  new Promise((resolve, reject) => {
+    const loader = new PIXI.Loader();
+
+    loader
+      .add("grainShader", "/shaders/grain.frag")
+      .add("thresholdShader", "/shaders/threshold.frag");
+
+    loader.load((loaders, resources) => {
+      if (resources && resources.grainShader && resources.thresholdShader) {
+        resolve({
+          grainEffect: new PIXI.Filter(undefined, resources.grainShader.data, {
+            random: props.settings.grain.useRandom
+              ? Math.random()
+              : props.settings.grain.magicNumber,
+            strength: props.settings.grain.strength,
+          }),
+          thresholdEffect: new PIXI.Filter(
+            undefined,
+            resources.thresholdShader.data,
+            {
+              cutoff: 0,
+            }
+          ),
+        });
+      }
+    });
+  });
 
 export const Transitions = (props: Props) => {
   const app = new PIXI.Application({
@@ -26,6 +57,10 @@ export const Transitions = (props: Props) => {
   };
 
   app.start();
+
+  loadShaders(props).then((filters) => {
+    console.log("loaded custom filters:", filters);
+  });
 
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
 

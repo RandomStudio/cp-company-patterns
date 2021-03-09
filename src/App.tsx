@@ -19,6 +19,16 @@ const App = () => {
           </Route>
           <Route path="/transition">
             <Transitions
+              settings={{
+                overlay: {
+                  alpha: 1.0,
+                },
+                grain: {
+                  useRandom: false,
+                  magicNumber: 0.456,
+                  strength: 16.0,
+                },
+              }}
               canvasSize={{
                 width: window.innerWidth,
                 height: window.innerHeight,
