@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import * as PIXI from "pixi.js";
-import { Size } from "./App";
+import { Size } from "../App";
+
+import "./Transitions.scss";
 
 interface Props {
   canvasSize: Size;
@@ -12,7 +14,7 @@ export const Transitions = (props: Props) => {
   const app = new PIXI.Application({
     width: props.canvasSize.width,
     height: props.canvasSize.height,
-    backgroundColor: 0x005599,
+    transparent: true,
   });
 
   app.start();
@@ -30,7 +32,12 @@ export const Transitions = (props: Props) => {
       app.destroy(true);
     };
   });
-  return <div ref={ref} />;
+  return (
+    <div className="Transitions">
+      Content A
+      <div className="container" ref={ref} />
+    </div>
+  );
 };
 
 export default Transitions;

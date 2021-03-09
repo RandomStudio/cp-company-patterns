@@ -1,9 +1,8 @@
-import React from "react";
 import "./App.scss";
 
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-import SimpleTest from "./SimpleTest";
-import Transitions from "./Transitions";
+import SimpleTest from "./SimpleTest/SimpleTest";
+import Transitions from "./Transitions/Transitions";
 
 export interface Size {
   width: number;
