@@ -1,6 +1,15 @@
 import { useEffect, useRef } from "react";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  useRouteMatch,
+} from "react-router-dom";
 import * as PIXI from "pixi.js";
 import { Size } from "../App";
+import Grid from "./Grid";
+import Item from "./Item";
 
 import "./Transitions.scss";
 
@@ -32,9 +41,19 @@ export const Transitions = (props: Props) => {
       app.destroy(true);
     };
   });
+
+  let { path } = useRouteMatch();
+
   return (
     <div className="Transitions">
-      Content A
+      <h1>Transitions Demo</h1>
+      <Route exact path={path}>
+        <Grid />
+      </Route>
+      <Route path={`${path}/:itemId`}>
+        <Item />
+      </Route>
+
       <div className="container" ref={ref} />
     </div>
   );
