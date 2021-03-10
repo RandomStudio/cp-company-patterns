@@ -26,7 +26,7 @@ const items = [
   },
   {
     id: 1,
-    url: "/products/NO-CODE.jpg",
+    url: "/products/NO-CODE.JPG",
   },
 ];
 interface Props {
