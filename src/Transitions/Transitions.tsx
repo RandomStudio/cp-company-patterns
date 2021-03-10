@@ -82,63 +82,23 @@ const loadItemResource = (url: string): Promise<PIXI.LoaderResource> =>
 
 const startTransitionEffect = async (
   app: PIXI.Application,
-  itemResource: PIXI.LoaderResource,
-  customFilters: CustomFilters,
-  props: Props,
-  triggerContentSwitch: () => void
+  controls: {
+    thresholdEffect: PIXI.Filter;
+    flatColourBackground: PIXI.Graphics;
+    foregroundContainer: PIXI.Container;
+    renderTexture: PIXI.RenderTexture;
+  },
+  callbacks: {
+    onContentShouldSwitch: () => void;
+    onTransitionFinished: () => void;
+  }
 ) => {
-  const { width, height } = app.screen;
-
-  const { data, texture } = itemResource;
-
-  findCrop({ width, height }, texture);
-
-  const dominantColour = await getDominantColour(data);
-
-  const flatColourBackground = new PIXI.Graphics();
-
-  flatColourBackground.beginFill(dominantColour);
-  flatColourBackground.drawRect(0, 0, width, height);
-  flatColourBackground.endFill();
-
-  flatColourBackground.alpha = 0; // initial value
-
-  app.stage.addChild(flatColourBackground);
-
-  const sprite = new PIXI.Sprite(texture);
-  sprite.width = width;
-  sprite.height = height;
-
-  let colorMatrix = new PIXI.filters.ColorMatrixFilter();
-
-  const foregroundContainer = new PIXI.Container();
-  const renderTexture = PIXI.RenderTexture.create({
-    width,
-    height,
-  });
-
-  const { grainEffect, thresholdEffect } = customFilters;
-
-  thresholdEffect.uniforms["cutoff"] = 0; // initial value
-
-  colorMatrix.blackAndWhite(true);
-  colorMatrix.contrast(0.2, true);
-
-  sprite.filters = [grainEffect, colorMatrix, thresholdEffect];
-
-  foregroundContainer.addChild(sprite);
-  app.renderer.render(foregroundContainer, renderTexture, true);
-
-  const foregroundLayerSprite = new PIXI.Sprite(renderTexture);
-  foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
-  // foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.DARKEN;
-
-  foregroundLayerSprite.alpha = props.settings.overlay.alpha;
-
-  app.stage.addChild(foregroundLayerSprite);
-
-  // const hsl = toHSLArray(dominantColour);
-  // const targetThresholdValue = getThreshold(hsl);
+  const {
+    thresholdEffect,
+    flatColourBackground,
+    foregroundContainer,
+    renderTexture,
+  } = controls;
 
   const duration = 4000;
   const contentSwitchPoint = 0.5;
@@ -168,12 +128,100 @@ const startTransitionEffect = async (
 
     app.renderer.render(foregroundContainer, renderTexture, true);
 
-    if (progress >= 0.5) {
+    let hasReachedContentSwitch = false;
+    let hasReachedTransitionDone = false;
+
+    if (progress >= 0.5 && !hasReachedContentSwitch) {
+      hasReachedContentSwitch = true;
       // Once animation progress is at 0.5, trigger content to switch behind
       console.log("switch content now!");
-      triggerContentSwitch();
+      callbacks.onContentShouldSwitch();
+    }
+    if (progress >= 1.0 && !hasReachedTransitionDone) {
+      hasReachedTransitionDone = true;
+      callbacks.onTransitionFinished();
     }
   });
+};
+
+const prepareTransition = async (
+  itemId: number,
+  customFilters: CustomFilters | null = null,
+  app: PIXI.Application,
+  props: Props,
+  callbacks: {
+    onContentShouldSwitch: () => void;
+    onTransitionFinished: () => void;
+  }
+) => {
+  const item = items.find((i) => i.id === itemId);
+
+  if (customFilters !== null) {
+    if (item) {
+      const itemResource = await loadItemResource(item.url);
+
+      const { width, height } = app.screen;
+
+      const { data, texture } = itemResource;
+
+      findCrop({ width, height }, texture);
+
+      const dominantColour = await getDominantColour(data);
+
+      const flatColourBackground = new PIXI.Graphics();
+
+      flatColourBackground.beginFill(dominantColour);
+      flatColourBackground.drawRect(0, 0, width, height);
+      flatColourBackground.endFill();
+
+      flatColourBackground.alpha = 0; // initial value
+
+      app.stage.addChild(flatColourBackground);
+
+      const sprite = new PIXI.Sprite(texture);
+      sprite.width = width;
+      sprite.height = height;
+
+      let colorMatrix = new PIXI.filters.ColorMatrixFilter();
+
+      const foregroundContainer = new PIXI.Container();
+      const renderTexture = PIXI.RenderTexture.create({
+        width,
+        height,
+      });
+
+      const { grainEffect, thresholdEffect } = customFilters;
+
+      thresholdEffect.uniforms["cutoff"] = 0; // initial value
+
+      colorMatrix.blackAndWhite(true);
+      colorMatrix.contrast(0.2, true);
+
+      sprite.filters = [grainEffect, colorMatrix, thresholdEffect];
+
+      foregroundContainer.addChild(sprite);
+      app.renderer.render(foregroundContainer, renderTexture, true);
+
+      const foregroundLayerSprite = new PIXI.Sprite(renderTexture);
+      foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+      // foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.DARKEN;
+
+      foregroundLayerSprite.alpha = props.settings.overlay.alpha;
+
+      app.stage.addChild(foregroundLayerSprite);
+
+      startTransitionEffect(
+        app,
+        {
+          thresholdEffect,
+          flatColourBackground,
+          foregroundContainer,
+          renderTexture,
+        },
+        { ...callbacks }
+      );
+    }
+  }
 };
 
 export const Transitions = (props: Props) => {
@@ -185,29 +233,6 @@ export const Transitions = (props: Props) => {
   });
 
   let customFilters: CustomFilters | null = null;
-
-  const startTransition = async (
-    itemId: number,
-    triggerContentSwitch: () => void
-  ) => {
-    const item = items.find((i) => i.id === itemId);
-
-    console.log("starting transition to item", item);
-    if (customFilters !== null) {
-      console.log("filters ready", customFilters);
-      if (item) {
-        console.log("loading item texture...");
-        const itemResource = await loadItemResource(item.url);
-        startTransitionEffect(
-          app,
-          itemResource,
-          customFilters,
-          props,
-          triggerContentSwitch
-        );
-      }
-    }
-  };
 
   app.start();
 
@@ -243,9 +268,14 @@ export const Transitions = (props: Props) => {
               <button
                 onClick={() => {
                   setActive(true);
-                  startTransition(i.id, () => {
-                    setItemId(i.id);
-                    // setActive(false);
+
+                  prepareTransition(i.id, customFilters, app, props, {
+                    onContentShouldSwitch: () => {
+                      setItemId(i.id);
+                    },
+                    onTransitionFinished: () => {
+                      setActive(false);
+                    },
                   });
                 }}
               >
