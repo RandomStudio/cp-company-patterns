@@ -54,6 +54,7 @@ const loadCustomFilters = (props: Props): Promise<CustomFilters> =>
             resources.thresholdShader.data,
             {
               cutoff: 0,
+              useAlpha: true,
             }
           ),
         });
@@ -97,7 +98,7 @@ const prepareLayers = async (
   graphics.drawRect(0, 0, width, height);
   graphics.endFill();
 
-  app.stage.addChild(graphics);
+  // app.stage.addChild(graphics);
 
   const sprite = new PIXI.Sprite(texture);
   sprite.width = width;
@@ -111,13 +112,9 @@ const prepareLayers = async (
     height,
   });
 
-  const hsl = toHSLArray(dominantColour);
-  const targetThresholdValue = getThreshold(hsl);
-
   const { grainEffect, thresholdEffect } = customFilters;
 
-  // TODO: animate this
-  thresholdEffect.uniforms["cutoff"] = targetThresholdValue;
+  thresholdEffect.uniforms["cutoff"] = 0; // initial value
 
   colorMatrix.blackAndWhite(true);
   colorMatrix.contrast(0.2, true);
@@ -128,11 +125,23 @@ const prepareLayers = async (
   app.renderer.render(foregroundContainer, renderTexture, true);
 
   const foregroundLayerSprite = new PIXI.Sprite(renderTexture);
-  foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+  // foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+  // foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.DARKEN;
 
   foregroundLayerSprite.alpha = props.settings.overlay.alpha;
 
   app.stage.addChild(foregroundLayerSprite);
+
+  const hsl = toHSLArray(dominantColour);
+  const targetThresholdValue = getThreshold(hsl);
+
+  app.ticker.add(() => {
+    const currentThreshold = thresholdEffect.uniforms["cutoff"];
+    if (currentThreshold < targetThresholdValue) {
+      thresholdEffect.uniforms["cutoff"] = currentThreshold + 0.01;
+      app.renderer.render(foregroundContainer, renderTexture, true);
+    }
+  });
 };
 
 export const Transitions = (props: Props) => {
