@@ -7,28 +7,17 @@ import "./Transitions.scss";
 import {
   findCrop,
   getDominantColour,
-  getThreshold,
   PatternSettings,
 } from "../SimpleTest/Pattern";
-import { toHSLArray } from "hex-color-utils";
 
 import { remap } from "@anselan/maprange";
+import { items } from "./data";
 
 interface CustomFilters {
   grainEffect: PIXI.Filter;
   thresholdEffect: PIXI.Filter;
 }
 
-const items = [
-  {
-    id: 0,
-    url: "/products/ARCH_.jpg",
-  },
-  {
-    id: 1,
-    url: "/products/NO-CODE.JPG",
-  },
-];
 interface Props {
   canvasSize: Size;
   settings: PatternSettings;
