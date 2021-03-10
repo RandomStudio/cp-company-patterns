@@ -134,17 +134,18 @@ export const Transitions = (props: Props) => {
       {itemId === null && (
         <ul>
           {items.map((i) => (
-            <li
-              key={`item-${i.id}`}
-              onClick={() => {
-                setActive(true);
-                startTransition(i.id, () => {
-                  setItemId(i.id);
-                  setActive(false);
-                });
-              }}
-            >
-              Item {i.id}
+            <li key={`item-${i.id}`}>
+              <button
+                onClick={() => {
+                  setActive(true);
+                  startTransition(i.id, () => {
+                    setItemId(i.id);
+                    setActive(false);
+                  });
+                }}
+              >
+                Item {i.id}
+              </button>
             </li>
           ))}
         </ul>
