@@ -163,6 +163,8 @@ const prepareTransition = async (
     if (item) {
       const itemResource = await loadItemResource(item.url);
 
+      console.log("loaded resource", { itemResource });
+
       const { width, height } = app.screen;
 
       const { data, texture } = itemResource;
