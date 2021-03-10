@@ -4,7 +4,18 @@ import { Size } from "../App";
 import Item from "./Item";
 
 import "./Transitions.scss";
-import { findCrop, PatternSettings } from "../SimpleTest/Pattern";
+import {
+  findCrop,
+  getDominantColour,
+  getThreshold,
+  PatternSettings,
+} from "../SimpleTest/Pattern";
+import { toHSLArray } from "hex-color-utils";
+
+interface CustomFilters {
+  grainEffect: PIXI.Filter;
+  thresholdEffect: PIXI.Filter;
+}
 
 const items = [
   {
@@ -21,7 +32,7 @@ interface Props {
   settings: PatternSettings;
 }
 
-const loadShaders = (props: Props): Promise<{ [key: string]: PIXI.Filter }> =>
+const loadCustomFilters = (props: Props): Promise<CustomFilters> =>
   new Promise((resolve, reject) => {
     const loader = new PIXI.Loader();
 
@@ -46,31 +57,83 @@ const loadShaders = (props: Props): Promise<{ [key: string]: PIXI.Filter }> =>
             }
           ),
         });
+      } else {
+        reject("Shader resources did not load");
       }
     });
   });
 
-const loadItemTexture = (
-  url: string,
-  app: PIXI.Application
-): Promise<PIXI.Texture> =>
+const loadItemResource = (url: string): Promise<PIXI.LoaderResource> =>
   new Promise((resolve, reject) => {
     const loader = new PIXI.Loader();
-    const { width, height } = app.screen;
 
     loader.add("item", url);
     loader.load((loader, resources) => {
       if (resources.item) {
-        const itemTexture = resources.item.texture;
-
-        findCrop({ width, height }, itemTexture);
-
-        resolve(itemTexture);
+        resolve(resources.item);
       } else {
         reject("resources.item failed to load");
       }
     });
   });
+
+const prepareLayers = async (
+  app: PIXI.Application,
+  itemResource: PIXI.LoaderResource,
+  customFilters: CustomFilters,
+  props: Props
+) => {
+  const { width, height } = app.screen;
+
+  const { data, texture } = itemResource;
+
+  findCrop({ width, height }, texture);
+
+  const dominantColour = await getDominantColour(data);
+
+  const graphics = new PIXI.Graphics();
+
+  graphics.beginFill(dominantColour);
+  graphics.drawRect(0, 0, width, height);
+  graphics.endFill();
+
+  app.stage.addChild(graphics);
+
+  const sprite = new PIXI.Sprite(texture);
+  sprite.width = width;
+  sprite.height = height;
+
+  let colorMatrix = new PIXI.filters.ColorMatrixFilter();
+
+  const foregroundContainer = new PIXI.Container();
+  const renderTexture = PIXI.RenderTexture.create({
+    width,
+    height,
+  });
+
+  const hsl = toHSLArray(dominantColour);
+  const targetThresholdValue = getThreshold(hsl);
+
+  const { grainEffect, thresholdEffect } = customFilters;
+
+  // TODO: animate this
+  thresholdEffect.uniforms["cutoff"] = targetThresholdValue;
+
+  colorMatrix.blackAndWhite(true);
+  colorMatrix.contrast(0.2, true);
+
+  sprite.filters = [grainEffect, colorMatrix, thresholdEffect];
+
+  foregroundContainer.addChild(sprite);
+  app.renderer.render(foregroundContainer, renderTexture, true);
+
+  const foregroundLayerSprite = new PIXI.Sprite(renderTexture);
+  foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+
+  foregroundLayerSprite.alpha = props.settings.overlay.alpha;
+
+  app.stage.addChild(foregroundLayerSprite);
+};
 
 export const Transitions = (props: Props) => {
   const app = new PIXI.Application({
@@ -80,21 +143,18 @@ export const Transitions = (props: Props) => {
     // backgroundColor: 0xff0000,
   });
 
-  const startTransition = (itemId: number, onDone: () => void) => {
+  let customFilters: CustomFilters | null = null;
+
+  const startTransition = async (itemId: number, onDone: () => void) => {
     const item = items.find((i) => i.id === itemId);
 
     console.log("starting transition to item", item);
-    if (filters !== null) {
-      console.log("filters ready", filters);
+    if (customFilters !== null) {
+      console.log("filters ready", customFilters);
       if (item) {
         console.log("loading item texture...");
-        loadItemTexture(item.url, app).then((texture) => {
-          const sprite = new PIXI.Sprite(texture);
-          const { width, height } = app.screen;
-          sprite.width = width;
-          sprite.height = height;
-          app.stage.addChild(sprite);
-        });
+        const itemResource = await loadItemResource(item.url);
+        await prepareLayers(app, itemResource, customFilters, props);
       }
     }
     setTimeout(() => {
@@ -104,11 +164,9 @@ export const Transitions = (props: Props) => {
 
   app.start();
 
-  let filters: { [key: string]: PIXI.Filter } | null = null;
-
-  loadShaders(props).then((res: { [key: string]: PIXI.Filter }) => {
+  loadCustomFilters(props).then((res: CustomFilters) => {
     console.log("loaded custom filters:", res);
-    filters = res;
+    customFilters = res;
   });
 
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
@@ -126,7 +184,7 @@ export const Transitions = (props: Props) => {
       console.log("destroy PIXI app");
       app.destroy(true);
     };
-  }, []);
+  }, []); // no deps, i.e. do not re-render unnecessarily
 
   return (
     <div className="Transitions">

@@ -83,7 +83,7 @@ const loadResources = (
     });
   });
 
-const getDominantColour = async (imgData: any) => {
+export const getDominantColour = async (imgData: any) => {
   const colorThief = new ColorThief();
   const colours = await colorThief.getColor(imgData);
   const [r, g, b] = colours.map((c: number) => c / 255.0);
@@ -229,6 +229,6 @@ const addDebugInfo = (
   app.stage.addChild(text);
 };
 
-const getThreshold = (hsl: number[]) => {
+export const getThreshold = (hsl: number[]) => {
   return hsl[2];
 };
