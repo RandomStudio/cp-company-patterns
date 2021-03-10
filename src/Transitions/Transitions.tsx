@@ -100,13 +100,16 @@ const startTransitionEffect = async (
     renderTexture,
   } = controls;
 
-  const duration = 4000;
+  const duration = 2000;
   const contentSwitchPoint = 0.5;
   let elapsed = 0;
 
   // In the animation timing below, position 1.0 is transition
   // complete, and content switch point is halfway into the
   // transition, i.e. 0.5
+
+  let hasReachedContentSwitch = false;
+  let hasReachedTransitionDone = false;
 
   app.ticker.add(() => {
     elapsed += app.ticker.deltaMS;
@@ -121,24 +124,24 @@ const startTransitionEffect = async (
       flatColourBackground.alpha = flatColourTiming;
     } else {
       // "fade out"
-      const allAlphaTiming = remap(progress, [0.5, 1], [0, 1], true);
-      app.stage.alpha = 1 - allAlphaTiming;
-      // console.log(foregroundContainer.alpha);
+      const allAlphaTiming = remap(progress, [0.5, 0.75], [0, 1], true);
+      app.stage.alpha = 1 - allAlphaTiming; // inverse
+
+      const thresholdTiming = remap(progress, [0.5, 0.6], [0, 1], true);
+      thresholdEffect.uniforms["cutoff"] = 1 - thresholdTiming;
     }
 
     app.renderer.render(foregroundContainer, renderTexture, true);
 
-    let hasReachedContentSwitch = false;
-    let hasReachedTransitionDone = false;
-
-    if (progress >= 0.5 && !hasReachedContentSwitch) {
+    if (progress >= 0.5 && hasReachedContentSwitch === false) {
       hasReachedContentSwitch = true;
       // Once animation progress is at 0.5, trigger content to switch behind
       console.log("switch content now!");
       callbacks.onContentShouldSwitch();
     }
-    if (progress >= 1.0 && !hasReachedTransitionDone) {
+    if (progress >= 1.0 && hasReachedTransitionDone === false) {
       hasReachedTransitionDone = true;
+      console.log("transition done!");
       callbacks.onTransitionFinished();
     }
   });
