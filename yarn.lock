@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@anselan/maprange@^0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@anselan/maprange/-/maprange-0.6.1.tgz#e86d12c937ac3540a26a27634bcf8a0d6f96d3e4"
+  integrity sha512-yiwLNQDSTKT1J0/dWX7f5bLfLNtBkPPCCtcXlsjbtwOeDoEqls9S0yiC0gmC184AoQ7lNLS+ri8xTtx1Vrvc5w==
+
 "@babel/code-frame@7.10.4":
   version "7.10.4"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.10.4.tgz#168da1a36e90da68ae8d49c0f1b48c7c6249213a"

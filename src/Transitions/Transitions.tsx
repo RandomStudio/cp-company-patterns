@@ -12,6 +12,8 @@ import {
 } from "../SimpleTest/Pattern";
 import { toHSLArray } from "hex-color-utils";
 
+import { remap } from "@anselan/maprange";
+
 interface CustomFilters {
   grainEffect: PIXI.Filter;
   thresholdEffect: PIXI.Filter;
@@ -78,11 +80,12 @@ const loadItemResource = (url: string): Promise<PIXI.LoaderResource> =>
     });
   });
 
-const prepareLayers = async (
+const startTransitionEffect = async (
   app: PIXI.Application,
   itemResource: PIXI.LoaderResource,
   customFilters: CustomFilters,
-  props: Props
+  props: Props,
+  triggerContentSwitch: () => void
 ) => {
   const { width, height } = app.screen;
 
@@ -92,13 +95,15 @@ const prepareLayers = async (
 
   const dominantColour = await getDominantColour(data);
 
-  const graphics = new PIXI.Graphics();
+  const flatColourBackground = new PIXI.Graphics();
 
-  graphics.beginFill(dominantColour);
-  graphics.drawRect(0, 0, width, height);
-  graphics.endFill();
+  flatColourBackground.beginFill(dominantColour);
+  flatColourBackground.drawRect(0, 0, width, height);
+  flatColourBackground.endFill();
 
-  // app.stage.addChild(graphics);
+  flatColourBackground.alpha = 0; // initial value
+
+  app.stage.addChild(flatColourBackground);
 
   const sprite = new PIXI.Sprite(texture);
   sprite.width = width;
@@ -125,21 +130,48 @@ const prepareLayers = async (
   app.renderer.render(foregroundContainer, renderTexture, true);
 
   const foregroundLayerSprite = new PIXI.Sprite(renderTexture);
-  // foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+  foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.MULTIPLY;
   // foregroundLayerSprite.blendMode = PIXI.BLEND_MODES.DARKEN;
 
   foregroundLayerSprite.alpha = props.settings.overlay.alpha;
 
   app.stage.addChild(foregroundLayerSprite);
 
-  const hsl = toHSLArray(dominantColour);
-  const targetThresholdValue = getThreshold(hsl);
+  // const hsl = toHSLArray(dominantColour);
+  // const targetThresholdValue = getThreshold(hsl);
+
+  const duration = 4000;
+  const contentSwitchPoint = 0.5;
+  let elapsed = 0;
+
+  // In the animation timing below, position 1.0 is transition
+  // complete, and content switch point is halfway into the
+  // transition, i.e. 0.5
 
   app.ticker.add(() => {
-    const currentThreshold = thresholdEffect.uniforms["cutoff"];
-    if (currentThreshold < targetThresholdValue) {
-      thresholdEffect.uniforms["cutoff"] = currentThreshold + 0.01;
-      app.renderer.render(foregroundContainer, renderTexture, true);
+    elapsed += app.ticker.deltaMS;
+    const progress = remap(elapsed, [0, duration], [0, 1], true);
+
+    if (progress < contentSwitchPoint) {
+      // "fade in"
+      const thresholdTiming = remap(progress, [0, 0.5], [0, 1], true);
+      thresholdEffect.uniforms["cutoff"] = thresholdTiming;
+
+      const flatColourTiming = remap(progress, [0.25, 0.5], [0, 1], true);
+      flatColourBackground.alpha = flatColourTiming;
+    } else {
+      // "fade out"
+      const allAlphaTiming = remap(progress, [0.5, 1], [0, 1], true);
+      app.stage.alpha = 1 - allAlphaTiming;
+      // console.log(foregroundContainer.alpha);
+    }
+
+    app.renderer.render(foregroundContainer, renderTexture, true);
+
+    if (progress >= 0.5) {
+      // Once animation progress is at 0.5, trigger content to switch behind
+      console.log("switch content now!");
+      triggerContentSwitch();
     }
   });
 };
@@ -154,7 +186,10 @@ export const Transitions = (props: Props) => {
 
   let customFilters: CustomFilters | null = null;
 
-  const startTransition = async (itemId: number, onDone: () => void) => {
+  const startTransition = async (
+    itemId: number,
+    triggerContentSwitch: () => void
+  ) => {
     const item = items.find((i) => i.id === itemId);
 
     console.log("starting transition to item", item);
@@ -163,12 +198,15 @@ export const Transitions = (props: Props) => {
       if (item) {
         console.log("loading item texture...");
         const itemResource = await loadItemResource(item.url);
-        await prepareLayers(app, itemResource, customFilters, props);
+        startTransitionEffect(
+          app,
+          itemResource,
+          customFilters,
+          props,
+          triggerContentSwitch
+        );
       }
     }
-    setTimeout(() => {
-      onDone();
-    }, 2000);
   };
 
   app.start();
@@ -207,7 +245,7 @@ export const Transitions = (props: Props) => {
                   setActive(true);
                   startTransition(i.id, () => {
                     setItemId(i.id);
-                    setActive(false);
+                    // setActive(false);
                   });
                 }}
               >
