@@ -7,11 +7,13 @@ import "./Transitions.scss";
 import {
   findCrop,
   getDominantColour,
+  getThreshold,
   PatternSettings,
 } from "../SimpleTest/Pattern";
 
 import { remap } from "@anselan/maprange";
 import { items } from "./data";
+import { fromHSL, toHSLArray } from "hex-color-utils";
 
 interface CustomFilters {
   grainEffect: PIXI.Filter;
@@ -79,6 +81,7 @@ const startTransitionEffect = async (
     foregroundContainer: PIXI.Container;
     renderTexture: PIXI.RenderTexture;
   },
+  dominantColour: number,
   callbacks: {
     onContentShouldSwitch: () => void;
     onTransitionFinished: () => void;
@@ -102,16 +105,30 @@ const startTransitionEffect = async (
   let hasReachedContentSwitch = false;
   let hasReachedTransitionDone = false;
 
+  const hsl = toHSLArray(dominantColour);
+  const targetThresholdValue = getThreshold(hsl);
+
+  console.log({
+    hsl,
+    dominantColour: dominantColour.toString(16),
+    targetThresholdValue,
+  });
+
   app.ticker.add(() => {
     elapsed += app.ticker.deltaMS;
     const progress = remap(elapsed, [0, duration], [0, 1], true);
 
     if (progress < contentSwitchPoint) {
       // "fade in"
-      const thresholdTiming = remap(progress, [0, 0.5], [0, 1], true);
+      const thresholdTiming = remap(
+        progress,
+        [0, 0.5],
+        [0, targetThresholdValue],
+        true
+      );
       thresholdEffect.uniforms["cutoff"] = thresholdTiming;
 
-      const flatColourTiming = remap(progress, [0.1, 0.4], [0, 1], true);
+      const flatColourTiming = remap(progress, [0.2, 0.3], [0, 1], true);
       flatColourBackground.alpha = flatColourTiming;
     } else {
       // "fade out"
@@ -126,8 +143,8 @@ const startTransitionEffect = async (
       const allAlphaTiming = remap(progress, [0.5, 0.6], [0, 1], true);
       app.stage.alpha = 1 - allAlphaTiming; // inverse
 
-      const thresholdTiming = remap(progress, [0.5, 0.55], [0, 1], true);
-      thresholdEffect.uniforms["cutoff"] = thresholdTiming;
+      // const thresholdTiming = remap(progress, [0.5, 0.55], [0, 1], true);
+      // thresholdEffect.uniforms["cutoff"] = thresholdTiming;
     }
 
     app.renderer.render(foregroundContainer, renderTexture, true);
@@ -173,6 +190,10 @@ const prepareTransition = async (
       const dominantColour = await getDominantColour(data);
 
       const flatColourBackground = new PIXI.Graphics();
+
+      // let [h, s, l] = toHSLArray(dominantColour);
+      // s = remap(s, [0, 1], [0.5, 1], true);
+      // const overlayColour = fromHSL(h, s, l);
 
       flatColourBackground.beginFill(dominantColour);
       flatColourBackground.drawRect(0, 0, width, height);
@@ -222,9 +243,12 @@ const prepareTransition = async (
           foregroundContainer,
           renderTexture,
         },
+        dominantColour,
         { ...callbacks }
       );
     }
+  } else {
+    throw Error("custom filters not ready for transition");
   }
 };
 
