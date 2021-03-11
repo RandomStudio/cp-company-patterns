@@ -69,6 +69,8 @@ const loadItemResource = (url: string): Promise<PIXI.LoaderResource> =>
     });
   });
 
+// const randomOffset = () =>
+
 const startTransitionEffect = async (
   app: PIXI.Application,
   controls: {
@@ -109,15 +111,23 @@ const startTransitionEffect = async (
       const thresholdTiming = remap(progress, [0, 0.5], [0, 1], true);
       thresholdEffect.uniforms["cutoff"] = thresholdTiming;
 
-      const flatColourTiming = remap(progress, [0.25, 0.5], [0, 1], true);
+      const flatColourTiming = remap(progress, [0.1, 0.4], [0, 1], true);
       flatColourBackground.alpha = flatColourTiming;
     } else {
       // "fade out"
-      const allAlphaTiming = remap(progress, [0.5, 0.75], [0, 1], true);
+      foregroundContainer.scale = new PIXI.Point(2, 2);
+
+      const [offsetX, offsetY] = [
+        remap(Math.random(), [0, 1], [-50, 50]),
+        remap(Math.random(), [0, 1], [-50, 50]),
+      ];
+      foregroundContainer.position = new PIXI.Point(offsetX, offsetY);
+
+      const allAlphaTiming = remap(progress, [0.5, 0.6], [0, 1], true);
       app.stage.alpha = 1 - allAlphaTiming; // inverse
 
-      const thresholdTiming = remap(progress, [0.5, 0.6], [0, 1], true);
-      thresholdEffect.uniforms["cutoff"] = 1 - thresholdTiming;
+      const thresholdTiming = remap(progress, [0.5, 0.55], [0, 1], true);
+      thresholdEffect.uniforms["cutoff"] = thresholdTiming;
     }
 
     app.renderer.render(foregroundContainer, renderTexture, true);
@@ -256,28 +266,28 @@ export const Transitions = (props: Props) => {
     <div className="Transitions">
       <h1>Transitions Demo</h1>
       {itemId === null && (
-        <ul>
+        <div>
           {items.map((i) => (
-            <li key={`item-${i.id}`}>
-              <button
-                onClick={() => {
-                  setActive(true);
+            <div
+              key={`item-${i.id}`}
+              className="item-box"
+              onClick={() => {
+                setActive(true);
 
-                  prepareTransition(i.id, customFilters, app, props, {
-                    onContentShouldSwitch: () => {
-                      setItemId(i.id);
-                    },
-                    onTransitionFinished: () => {
-                      setActive(false);
-                    },
-                  });
-                }}
-              >
-                Item {i.id}
-              </button>
-            </li>
+                prepareTransition(i.id, customFilters, app, props, {
+                  onContentShouldSwitch: () => {
+                    setItemId(i.id);
+                  },
+                  onTransitionFinished: () => {
+                    setActive(false);
+                  },
+                });
+              }}
+            >
+              <img src={i.url} className="grid-image"></img>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
       {itemId !== null && <Item id={itemId} />}
       <div className={`container ${active ? "active" : ""}`} ref={ref} />

@@ -1,3 +1,5 @@
+$size: 128px;
+
 .Transitions {
   .container {
     position: absolute;
@@ -6,5 +8,19 @@
     &.active {
       left: 0;
     }
+  }
+
+  .item-box {
+    display: inline-block;
+    cursor: pointer;
+    width: $size;
+    height: $size;
+    margin: 16px;
+  }
+
+  .grid-image {
+    width: $size;
+    height: $size;
+    object-fit: contain;
   }
 }
