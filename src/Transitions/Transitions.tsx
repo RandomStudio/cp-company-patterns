@@ -128,6 +128,9 @@ const startTransitionEffect = async (
 
     if (progress < contentSwitchPoint) {
       // "fade in"
+
+      foregroundContainer.scale = new PIXI.Point(1, 1);
+
       const thresholdTiming = remap(
         progress,
         [0, 0.5],
