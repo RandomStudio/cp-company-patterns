@@ -83,9 +83,9 @@ const loadResources = (
     });
   });
 
-export const getDominantColour = async (imgData: any) => {
+export const getDominantColour = async (imgData: any, quality = 10) => {
   const colorThief = new ColorThief();
-  const colours = await colorThief.getColor(imgData);
+  const colours = await colorThief.getColor(imgData, quality);
   const [r, g, b] = colours.map((c: number) => c / 255.0);
   return fromRGB(r, g, b);
 };
