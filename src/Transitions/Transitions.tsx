@@ -73,6 +73,9 @@ const loadItemResource = (url: string): Promise<PIXI.LoaderResource> =>
 
 // const randomOffset = () =>
 
+const makeSteppy = (value: number, resolution: number) =>
+  Math.round(value * resolution) / resolution;
+
 const startTransitionEffect = async (
   app: PIXI.Application,
   controls: {
@@ -108,15 +111,20 @@ const startTransitionEffect = async (
   const hsl = toHSLArray(dominantColour);
   const targetThresholdValue = getThreshold(hsl);
 
-  console.log({
-    hsl,
-    dominantColour: dominantColour.toString(16),
-    targetThresholdValue,
-  });
+  // console.log({
+  //   hsl,
+  //   dominantColour: dominantColour.toString(16),
+  //   targetThresholdValue,
+  // });
+
+  const steppiness = 20;
 
   app.ticker.add(() => {
     elapsed += app.ticker.deltaMS;
-    const progress = remap(elapsed, [0, duration], [0, 1], true);
+    const progress = makeSteppy(
+      remap(elapsed, [0, duration], [0, 1], true),
+      steppiness
+    );
 
     if (progress < contentSwitchPoint) {
       // "fade in"
@@ -128,7 +136,7 @@ const startTransitionEffect = async (
       );
       thresholdEffect.uniforms["cutoff"] = thresholdTiming;
 
-      const flatColourTiming = remap(progress, [0.2, 0.3], [0, 1], true);
+      const flatColourTiming = remap(progress, [0.15, 0.3], [0, 1], true);
       flatColourBackground.alpha = flatColourTiming;
     } else {
       // "fade out"
