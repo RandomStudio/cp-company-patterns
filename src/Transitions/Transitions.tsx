@@ -264,7 +264,6 @@ export const Transitions = (props: Props) => {
 
   return (
     <div className="Transitions">
-      <h1>Transitions Demo</h1>
       {itemId === null && (
         <div>
           {items.map((i) => (
