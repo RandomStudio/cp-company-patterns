@@ -288,7 +288,7 @@ export const Transitions = (props: Props) => {
           ))}
         </div>
       )}
-      {itemId !== null && <Item id={itemId} />}
+      {itemId !== null && <Item id={itemId} url={items[itemId].url} />}
       <div className={`container ${active ? "active" : ""}`} ref={ref} />
     </div>
   );

@@ -1,12 +1,16 @@
 interface Props {
   id: number;
+  url: string;
 }
 
 const Item = (props: Props) => {
   return (
-    <div>
+    <div className="Item">
       <h2>This is item {props.id}</h2>
-      <a href="/transition">Back</a>
+      <img src={props.url}></img>
+      <div>
+        <a href="/transition">Back</a>
+      </div>
     </div>
   );
 };
