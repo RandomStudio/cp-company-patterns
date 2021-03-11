@@ -1,4 +1,5 @@
 interface Props {
+  index: number;
   id: number;
   url: string;
 }
@@ -6,7 +7,9 @@ interface Props {
 const Item = (props: Props) => {
   return (
     <div className="Item">
-      <h2>This is item {props.id}</h2>
+      <h2>
+        [{props.index}]:#{props.id}
+      </h2>
       <img src={props.url}></img>
       <div>
         <a href="/transition">Back</a>

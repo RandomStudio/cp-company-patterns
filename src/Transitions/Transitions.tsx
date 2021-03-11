@@ -247,7 +247,7 @@ export const Transitions = (props: Props) => {
 
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
 
-  const [itemId, setItemId] = useState<null | number>(null);
+  const [itemIndex, setItemIndex] = useState<null | number>(null);
   const [active, setActive] = useState(false);
 
   useEffect(() => {
@@ -264,9 +264,9 @@ export const Transitions = (props: Props) => {
 
   return (
     <div className="Transitions">
-      {itemId === null && (
+      {itemIndex === null && (
         <div>
-          {items.map((i) => (
+          {items.map((i, index) => (
             <div
               key={`item-${i.id}`}
               className="item-box"
@@ -275,7 +275,7 @@ export const Transitions = (props: Props) => {
 
                 prepareTransition(i.id, customFilters, app, props, {
                   onContentShouldSwitch: () => {
-                    setItemId(i.id);
+                    setItemIndex(index);
                   },
                   onTransitionFinished: () => {
                     setActive(false);
@@ -288,7 +288,13 @@ export const Transitions = (props: Props) => {
           ))}
         </div>
       )}
-      {itemId !== null && <Item id={itemId} url={items[itemId].url} />}
+      {itemIndex !== null && (
+        <Item
+          id={items[itemIndex].id}
+          index={itemIndex}
+          url={items[itemIndex].url}
+        />
+      )}
       <div className={`container ${active ? "active" : ""}`} ref={ref} />
     </div>
   );
