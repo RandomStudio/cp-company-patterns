@@ -1,6 +1,7 @@
 // @ts-ignore
 import ColorThief from "colorthief";
 import { fromRGB } from "hex-color-utils";
+import { StringDecoder } from "node:string_decoder";
 import { useEffect, useState } from "react";
 interface Props {
   index: number;
@@ -9,13 +10,13 @@ interface Props {
 }
 
 interface ColourData {
-  dominantColour?: string;
-  palette?: string[];
+  dominantColour?: number;
+  palette?: number[];
 }
 
-const rgbArrayToHexString = (rgb: number[]): string => {
+const rgbArrayToHexString = (rgb: number[]): number => {
   const [r, g, b] = rgb.map((c) => c / 255.0);
-  return fromRGB(r, g, b).toString(16);
+  return fromRGB(r, g, b);
 };
 
 const Item = (props: Props) => {
@@ -46,17 +47,9 @@ const Item = (props: Props) => {
       <img src={props.url} alt="large"></img>
       {colourData && colourData.dominantColour && colourData.palette && (
         <div>
-          <div
-            className="swatch dominant"
-            style={{
-              backgroundColor: `#${colourData.dominantColour}`,
-            }}
-          />
+          <Swatch colour={colourData.dominantColour} addClass="dominant" />
           {colourData.palette.map((c) => (
-            <div
-              className="swatch palette"
-              style={{ backgroundColor: `#${c}` }}
-            ></div>
+            <Swatch colour={c} addClass="palette" />
           ))}
         </div>
       )}
@@ -69,5 +62,14 @@ const Item = (props: Props) => {
     </div>
   );
 };
+
+const Swatch = (props: { colour: number; addClass: string }) => (
+  <div
+    className={`swatch ${props.addClass}`}
+    style={{
+      backgroundColor: `#${props.colour.toString(16)}`,
+    }}
+  />
+);
 
 export default Item;
