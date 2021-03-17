@@ -119,7 +119,7 @@ const startTransitionEffect = async (
 
   // TODO: some (all?) of these values should be configurable not hard-coded
   const steppiness = 20;
-  const jumpAroundEvery = 50; // how many ms between offset changes on fade out
+  const jumpAroundEvery = 30; // how many ms between offset changes on fade out
   let jumpAroundElapsed = 0;
 
   app.ticker.add(() => {
@@ -148,10 +148,12 @@ const startTransitionEffect = async (
       // "fade out"
       foregroundContainer.scale = new PIXI.Point(2, 2);
 
+      const range = app.screen.width * 0.005;
+
       if (jumpAroundElapsed >= jumpAroundEvery) {
         const [offsetX, offsetY] = [
-          remap(Math.random(), [0, 1], [-50, 50]),
-          remap(Math.random(), [0, 1], [-50, 50]),
+          remap(Math.random(), [0, 1], [-range, range]),
+          remap(Math.random(), [0, 1], [-range, range]),
         ];
         foregroundContainer.position = new PIXI.Point(offsetX, offsetY);
         jumpAroundElapsed = 0;
