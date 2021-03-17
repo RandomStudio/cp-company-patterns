@@ -8,6 +8,7 @@ interface Props {
   index: number;
   id: number;
   url: string;
+  debug: boolean;
 }
 
 interface ColourData {
@@ -27,20 +28,22 @@ const Item = (props: Props) => {
   const [colourData, setColourData] = useState<ColourData>({});
 
   useEffect(() => {
-    const img = new Image();
-    img.src = props.url;
-    img.onload = async () => {
-      const dominantColour = rgbArrayToHexString(
-        await colorThief.getColor(img, 4)
-      );
-      const palette = await colorThief
-        .getPalette(img, 7, 4)
-        .map((c: number[]) => rgbArrayToHexString(c));
-      // console.log({ c });
-      const bestColour = await getBestColour(img);
-      console.log({ url: props.url, dominantColour, palette, bestColour });
-      setColourData({ dominantColour, palette, bestColour });
-    };
+    if (props.debug === true) {
+      const img = new Image();
+      img.src = props.url;
+      img.onload = async () => {
+        const dominantColour = rgbArrayToHexString(
+          await colorThief.getColor(img, 4)
+        );
+        const palette = await colorThief
+          .getPalette(img, 7, 4)
+          .map((c: number[]) => rgbArrayToHexString(c));
+        // console.log({ c });
+        const bestColour = await getBestColour(img);
+        console.log({ url: props.url, dominantColour, palette, bestColour });
+        setColourData({ dominantColour, palette, bestColour });
+      };
+    }
   }, []);
 
   return (
@@ -73,9 +76,6 @@ const Item = (props: Props) => {
             ))}
           </div>
         )}
-      <div>
-        <code>{JSON.stringify(colourData)}</code>
-      </div>
       <div>
         <a href="/transition">Back</a>
       </div>

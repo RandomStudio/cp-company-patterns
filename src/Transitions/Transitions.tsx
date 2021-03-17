@@ -148,7 +148,7 @@ const startTransitionEffect = async (
     renderTexture,
   } = controls;
 
-  const duration = 2000;
+  const duration = 1500;
   const contentSwitchPoint = 0.5;
   let elapsed = 0;
 
@@ -170,8 +170,9 @@ const startTransitionEffect = async (
 
   // TODO: some (all?) of these values should be configurable not hard-coded
   const steppiness = 20;
-  const jumpAroundEvery = 30; // how many ms between offset changes on fade out
+  const jumpAroundEvery = 80; // how many ms between offset changes on fade out
   let jumpAroundElapsed = 0;
+  const jumpRange = app.screen.width * 0.01;
 
   app.ticker.add(() => {
     elapsed += app.ticker.deltaMS;
@@ -179,6 +180,7 @@ const startTransitionEffect = async (
       remap(elapsed, [0, duration], [0, 1], true),
       steppiness
     );
+    // const progress = remap(elapsed, [0, duration], [0, 1], true);
 
     if (progress < contentSwitchPoint) {
       // "fade in"
@@ -199,21 +201,27 @@ const startTransitionEffect = async (
       // "fade out"
       foregroundContainer.scale = new PIXI.Point(2, 2);
 
-      const range = app.screen.width * 0.005;
+      jumpAroundElapsed += app.ticker.deltaMS;
 
       if (jumpAroundElapsed >= jumpAroundEvery) {
         const [offsetX, offsetY] = [
-          remap(Math.random(), [0, 1], [-range, range]),
-          remap(Math.random(), [0, 1], [-range, range]),
+          remap(Math.random(), [0, 1], [-jumpRange, jumpRange]),
+          remap(Math.random(), [0, 1], [-jumpRange, jumpRange]),
         ];
-        foregroundContainer.position = new PIXI.Point(offsetX, offsetY);
+        const [halfwayX, halfwayY] = [
+          0.5 * app.screen.width,
+          0.5 * app.screen.height,
+        ];
+        foregroundContainer.position = new PIXI.Point(
+          offsetX - halfwayX,
+          offsetY - halfwayY
+        );
         jumpAroundElapsed = 0;
-      } else {
-        jumpAroundElapsed += app.ticker.deltaMS;
       }
 
-      const allAlphaTiming = remap(progress, [0.5, 0.6], [0, 1], true);
-      app.stage.alpha = 1 - allAlphaTiming; // inverse
+      const allAlphaTiming = remap(progress, [0.5, 0.7], [1, 0], true);
+      // console.log({ progress, allAlphaTiming });
+      app.stage.alpha = allAlphaTiming; // inverse
 
       // const thresholdTiming = remap(progress, [0.5, 0.55], [0, 1], true);
       // thresholdEffect.uniforms["cutoff"] = thresholdTiming;
@@ -389,6 +397,7 @@ export const Transitions = (props: Props) => {
           id={items[itemIndex].id}
           index={itemIndex}
           url={items[itemIndex].url}
+          debug={false}
         />
       )}
       <div className={`container ${active ? "active" : ""}`} ref={ref} />
