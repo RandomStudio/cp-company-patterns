@@ -49,14 +49,30 @@ const Item = (props: Props) => {
         [{props.index}]:#{props.id}
       </h2>
       <img src={props.url} alt="large"></img>
-      {colourData && colourData.dominantColour && colourData.palette && (
-        <div>
-          <Swatch colour={colourData.dominantColour} addClass="dominant" />
-          {colourData.palette.map((c, i) => (
-            <Swatch colour={c} addClass="palette" key={`palette-swatch-${i}`} />
-          ))}
-        </div>
-      )}
+      {colourData &&
+        colourData.dominantColour &&
+        colourData.palette &&
+        colourData.bestColour && (
+          <div>
+            <Swatch
+              colour={colourData.dominantColour}
+              addClass={
+                colourData.dominantColour === colourData.bestColour
+                  ? "dominant best"
+                  : "dominant"
+              }
+            />
+            {colourData.palette.map((c, i) => (
+              <Swatch
+                colour={c}
+                addClass={
+                  c === colourData.bestColour ? "palette best" : "palette"
+                }
+                key={`palette-swatch-${i}`}
+              />
+            ))}
+          </div>
+        )}
       <div>
         <code>{JSON.stringify(colourData)}</code>
       </div>

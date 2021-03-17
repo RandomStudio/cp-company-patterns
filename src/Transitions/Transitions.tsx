@@ -29,36 +29,51 @@ interface Props {
   settings: PatternSettings;
 }
 
+const weightedSaturation = (hsl: number[]) => {
+  const [h, s, l] = hsl;
+  return s / l;
+};
+
 // Quality = 4 is higher than default (10)
 export const getBestColour = async (imgData: any, count = 7, quality = 4) => {
   const colorThief = new ColorThief();
   const dominantColour = await colorThief.getColor(imgData, quality);
   const paletteColours = await colorThief.getPalette(imgData, count, quality);
 
-  const allColours = [dominantColour, ...paletteColours]; // concatenate
+  const allColours = [dominantColour, ...paletteColours] // concatenate
+    .map((c: number[]) => {
+      const [r, g, b] = c.map((value) => value / 255);
+      return {
+        rgb: [r, g, b],
+        hex: fromRGB(r, g, b),
+      };
+    })
+    .map((c) => ({
+      ...c,
+      hsl: toHSLArray(c.hex),
+    }));
 
-  const hexColours = allColours.map((c: number[]) => {
-    const [r, g, b] = c.map((value) => value / 255);
-    return fromRGB(r, g, b);
+  const findBest = [...allColours].sort((a, b) => {
+    // const [h,s,l] = [0,1,2];
+    return b.hsl[1] - a.hsl[1];
+    // return weightedSaturation(b.hsl) - weightedSaturation(a.hsl);
   });
-
-  const hslColours = hexColours.map((c) => toHSLArray(c));
-
-  const findBest = hslColours.sort((a, b) => a[1] - b[1]);
 
   console.log({
     dominantColour,
     paletteColours,
     allColours,
-    hslColours,
-    hexColours,
     findBest,
   });
 
   const best = findBest[0];
-  const [h, s, l] = best;
 
-  return fromHSL(h, s, l);
+  if (best.hsl[2] < 0.25 || best.hsl[2] > 0.6) {
+    // If Lightness value is too low or too high...
+    return allColours[0].hex; // ...rather use dominant colour
+  } else {
+    return best.hex; // ...otherwise return the best match
+  }
 };
 
 const loadCustomFilters = (props: Props): Promise<CustomFilters> =>
@@ -244,7 +259,7 @@ const prepareTransition = async (
 
       findCrop({ width, height }, texture);
 
-      const dominantColour = await getDominantColour(data);
+      const dominantColour = await getBestColour(data);
 
       const flatColourBackground = new PIXI.Graphics();
 
