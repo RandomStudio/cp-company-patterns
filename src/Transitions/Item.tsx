@@ -1,6 +1,6 @@
 // @ts-ignore
 import ColorThief from "colorthief";
-import { fromRGB } from "hex-color-utils";
+import { fromRGB, toHSLArray } from "hex-color-utils";
 import { StringDecoder } from "node:string_decoder";
 import { useEffect, useState } from "react";
 interface Props {
@@ -63,13 +63,19 @@ const Item = (props: Props) => {
   );
 };
 
-const Swatch = (props: { colour: number; addClass: string }) => (
-  <div
-    className={`swatch ${props.addClass}`}
-    style={{
-      backgroundColor: `#${props.colour.toString(16)}`,
-    }}
-  />
-);
+const Swatch = (props: { colour: number; addClass: string }) => {
+  const [h, s, l] = toHSLArray(props.colour);
+  return (
+    <div className="swatch-container">
+      <div
+        className={`swatch ${props.addClass}`}
+        style={{
+          backgroundColor: `#${props.colour.toString(16)}`,
+        }}
+      />
+      <code>{JSON.stringify({ h, s, l }, null, 1)}</code>
+    </div>
+  );
+};
 
 export default Item;

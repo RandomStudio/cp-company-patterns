@@ -33,6 +33,9 @@ $size: 128px;
     height: 80vh;
     object-fit: contain;
   }
+  .swatch-container {
+    margin: 1em 0;
+  }
   .swatch {
     display: inline-block;
     &.dominant {
