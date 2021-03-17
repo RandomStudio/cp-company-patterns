@@ -34,7 +34,7 @@ const Item = (props: Props) => {
         await colorThief.getColor(img, 4)
       );
       const palette = await colorThief
-        .getPalette(img, 4)
+        .getPalette(img, 7, 4)
         .map((c: number[]) => rgbArrayToHexString(c));
       // console.log({ c });
       const bestColour = await getBestColour(img);

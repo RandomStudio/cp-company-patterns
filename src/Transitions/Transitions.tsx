@@ -30,10 +30,10 @@ interface Props {
 }
 
 // Quality = 4 is higher than default (10)
-export const getBestColour = async (imgData: any, quality = 4) => {
+export const getBestColour = async (imgData: any, count = 7, quality = 4) => {
   const colorThief = new ColorThief();
   const dominantColour = await colorThief.getColor(imgData, quality);
-  const paletteColours = await colorThief.getPalette(imgData, quality);
+  const paletteColours = await colorThief.getPalette(imgData, count, quality);
 
   const allColours = [dominantColour, ...paletteColours]; // concatenate
 
