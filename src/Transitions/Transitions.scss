@@ -36,6 +36,10 @@ $size: 128px;
   .swatch-container {
     margin: 1em 0;
   }
+  code {
+    font-size: 0.5em;
+    margin: 0 1em;
+  }
   .swatch {
     display: inline-block;
     &.dominant {

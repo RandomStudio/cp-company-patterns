@@ -3,6 +3,7 @@ import ColorThief from "colorthief";
 import { fromRGB, toHSLArray } from "hex-color-utils";
 import { StringDecoder } from "node:string_decoder";
 import { useEffect, useState } from "react";
+import { getBestColour } from "./Transitions";
 interface Props {
   index: number;
   id: number;
@@ -12,6 +13,7 @@ interface Props {
 interface ColourData {
   dominantColour?: number;
   palette?: number[];
+  bestColour?: number;
 }
 
 const rgbArrayToHexString = (rgb: number[]): number => {
@@ -29,15 +31,17 @@ const Item = (props: Props) => {
     img.src = props.url;
     img.onload = async () => {
       const dominantColour = rgbArrayToHexString(
-        await colorThief.getColor(img)
+        await colorThief.getColor(img, 4)
       );
       const palette = await colorThief
-        .getPalette(img)
+        .getPalette(img, 4)
         .map((c: number[]) => rgbArrayToHexString(c));
       // console.log({ c });
-      setColourData({ dominantColour, palette });
+      const bestColour = await getBestColour(img);
+      console.log({ url: props.url, dominantColour, palette, bestColour });
+      setColourData({ dominantColour, palette, bestColour });
     };
-  });
+  }, []);
 
   return (
     <div className="Item">
@@ -48,8 +52,8 @@ const Item = (props: Props) => {
       {colourData && colourData.dominantColour && colourData.palette && (
         <div>
           <Swatch colour={colourData.dominantColour} addClass="dominant" />
-          {colourData.palette.map((c) => (
-            <Swatch colour={c} addClass="palette" />
+          {colourData.palette.map((c, i) => (
+            <Swatch colour={c} addClass="palette" key={`palette-swatch-${i}`} />
           ))}
         </div>
       )}

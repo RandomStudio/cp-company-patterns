@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import * as PIXI from "pixi.js";
+import { remap } from "@anselan/maprange";
+import { fromHSL, fromRGB, toHSLArray } from "hex-color-utils";
+
+// @ts-ignore
+import ColorThief from "colorthief";
+
 import { Size } from "../App";
 import Item from "./Item";
 
@@ -11,9 +17,7 @@ import {
   PatternSettings,
 } from "../SimpleTest/Pattern";
 
-import { remap } from "@anselan/maprange";
 import { items } from "./data";
-import { fromHSL, toHSLArray } from "hex-color-utils";
 
 interface CustomFilters {
   grainEffect: PIXI.Filter;
@@ -24,6 +28,38 @@ interface Props {
   canvasSize: Size;
   settings: PatternSettings;
 }
+
+// Quality = 4 is higher than default (10)
+export const getBestColour = async (imgData: any, quality = 4) => {
+  const colorThief = new ColorThief();
+  const dominantColour = await colorThief.getColor(imgData, quality);
+  const paletteColours = await colorThief.getPalette(imgData, quality);
+
+  const allColours = [dominantColour, ...paletteColours]; // concatenate
+
+  const hexColours = allColours.map((c: number[]) => {
+    const [r, g, b] = c.map((value) => value / 255);
+    return fromRGB(r, g, b);
+  });
+
+  const hslColours = hexColours.map((c) => toHSLArray(c));
+
+  const findBest = hslColours.sort((a, b) => a[1] - b[1]);
+
+  console.log({
+    dominantColour,
+    paletteColours,
+    allColours,
+    hslColours,
+    hexColours,
+    findBest,
+  });
+
+  const best = findBest[0];
+  const [h, s, l] = best;
+
+  return fromHSL(h, s, l);
+};
 
 const loadCustomFilters = (props: Props): Promise<CustomFilters> =>
   new Promise((resolve, reject) => {
