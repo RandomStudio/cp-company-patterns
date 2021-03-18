@@ -118,6 +118,7 @@ const initGraphics = async (
     findCrop({ width, height }, productTexture);
 
     let dominantColour = await getDominantColour(resources.product.data);
+    // let dominantColour = await getBestColour(resources.product.data);
 
     const graphics = new PIXI.Graphics();
 
