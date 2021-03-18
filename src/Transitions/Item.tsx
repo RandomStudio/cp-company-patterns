@@ -1,7 +1,6 @@
 // @ts-ignore
 import ColorThief from "colorthief";
 import { fromRGB, toHSLArray } from "hex-color-utils";
-import { StringDecoder } from "node:string_decoder";
 import { useEffect, useState } from "react";
 import { getBestColour } from "./Transitions";
 interface Props {
@@ -44,6 +43,7 @@ const Item = (props: Props) => {
         setColourData({ dominantColour, palette, bestColour });
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
