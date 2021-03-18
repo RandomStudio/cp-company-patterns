@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as PIXI from "pixi.js";
 import { remap } from "@anselan/maprange";
-import { fromHSL, fromRGB, toHSLArray } from "hex-color-utils";
+import { fromRGB, toHSLArray } from "hex-color-utils";
 
 // @ts-ignore
 import ColorThief from "colorthief";
@@ -10,12 +10,7 @@ import { Size } from "../App";
 import Item from "./Item";
 
 import "./Transitions.scss";
-import {
-  findCrop,
-  getDominantColour,
-  getThreshold,
-  PatternSettings,
-} from "../SimpleTest/Pattern";
+import { findCrop, getThreshold, PatternSettings } from "../SimpleTest/Pattern";
 
 import { items } from "./data";
 
@@ -29,8 +24,10 @@ interface Props {
   settings: PatternSettings;
 }
 
+// NOTE: this approach is not currently used, but might be interesting.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const weightedSaturation = (hsl: number[]) => {
-  const [h, s, l] = hsl;
+  const [, s, l] = hsl;
   return s / l;
 };
 
@@ -54,8 +51,9 @@ export const getBestColour = async (imgData: any, count = 7, quality = 4) => {
     }));
 
   const findBest = [...allColours].sort((a, b) => {
-    // const [h,s,l] = [0,1,2];
-    return b.hsl[1] - a.hsl[1];
+    return b.hsl[1] - a.hsl[1]; // sort by comparing S (index 1) element of each
+
+    // NOTE: alternative method is to weight towards darker shades:
     // return weightedSaturation(b.hsl) - weightedSaturation(a.hsl);
   });
 
@@ -364,6 +362,7 @@ export const Transitions = (props: Props) => {
       console.log("destroy PIXI app");
       app.destroy(true);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // no deps, i.e. do not re-render unnecessarily
 
   return (
@@ -387,7 +386,7 @@ export const Transitions = (props: Props) => {
                 });
               }}
             >
-              <img src={i.url} className="grid-image"></img>
+              <img src={i.url} className="grid-image" alt="small preview"></img>
             </div>
           ))}
         </div>
