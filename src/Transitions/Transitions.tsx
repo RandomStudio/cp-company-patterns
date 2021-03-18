@@ -376,26 +376,54 @@ export const Transitions = (props: Props) => {
     <div className="Transitions">
       {itemIndex === null && (
         <div>
-          {items.map((i, index) => (
-            <div
-              key={`item-${i.id}`}
-              className="item-box"
-              onClick={() => {
-                setActive(true);
+          {
+            // @ts-ignore
+            match.params["designed"] === "single" ? (
+              <div className="predesigned">
+                <img
+                  src="/predesigned/grid.jpg"
+                  alt="predesigned grid"
+                  onClick={() => {
+                    setActive(true);
 
-                prepareTransition(i.id, customFilters, app, props, {
-                  onContentShouldSwitch: () => {
-                    setItemIndex(index);
-                  },
-                  onTransitionFinished: () => {
-                    setActive(false);
-                  },
-                });
-              }}
-            >
-              <img src={i.url} className="grid-image" alt="small preview"></img>
-            </div>
-          ))}
+                    prepareTransition(items[6].id, customFilters, app, props, {
+                      onContentShouldSwitch: () => {
+                        setItemIndex(6);
+                      },
+                      onTransitionFinished: () => {
+                        setActive(false);
+                      },
+                    });
+                  }}
+                ></img>
+              </div>
+            ) : (
+              items.map((i, index) => (
+                <div
+                  key={`item-${i.id}`}
+                  className="item-box"
+                  onClick={() => {
+                    setActive(true);
+
+                    prepareTransition(i.id, customFilters, app, props, {
+                      onContentShouldSwitch: () => {
+                        setItemIndex(index);
+                      },
+                      onTransitionFinished: () => {
+                        setActive(false);
+                      },
+                    });
+                  }}
+                >
+                  <img
+                    src={i.url}
+                    className="grid-image"
+                    alt="small preview"
+                  ></img>
+                </div>
+              ))
+            )
+          }
         </div>
       )}
 
@@ -411,7 +439,9 @@ export default Transitions;
 
 function SingleItemView(itemIndex: number, isSingle: boolean) {
   return isSingle ? (
-    <div>Designed item page goes here</div>
+    <div className="predesigned">
+      <img src="/predesigned/item.jpg" alt="predesigned item view"></img>
+    </div>
   ) : (
     <Item
       id={items[itemIndex].id}

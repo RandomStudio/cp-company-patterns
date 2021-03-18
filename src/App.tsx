@@ -51,7 +51,7 @@ const Home = () => (
     <nav>
       <Link to="/static">Simple static test</Link>
       <Link to="/transition/multi">Transition tests</Link>
-      <Link to="/transition/single">Full Design Transition test</Link>
+      <Link to="/transition/single">Design Mockup Transition test</Link>
     </nav>
   </div>
 );
