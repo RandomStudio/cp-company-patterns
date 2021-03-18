@@ -20,3 +20,4 @@ yarn start
 - [React](https://reactjs.org/) was used for ease of UI development, but core functionality does not depend on React
 - Created with `create-react-app` - more details [here](./README_CREATE_REACT_APP)
 - Some of the core components and functionality are written in [TypeScript](https://www.typescriptlang.org/) to aid readability/documentation and enforce type safety
+- [Sass](https://sass-lang.com/) is generally used instead of plain CSS
