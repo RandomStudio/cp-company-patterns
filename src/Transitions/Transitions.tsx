@@ -219,7 +219,7 @@ const startTransitionEffect = async (
         jumpAroundElapsed = 0;
       }
 
-      const allAlphaTiming = remap(progress, [0.5, 0.7], [1, 0], true);
+      const allAlphaTiming = remap(progress, [0.55, 0.65], [1, 0], true);
       // console.log({ progress, allAlphaTiming });
       app.stage.alpha = allAlphaTiming; // inverse
 
