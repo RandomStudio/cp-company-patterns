@@ -10,9 +10,10 @@ import { Size } from "../App";
 import Item from "./Item";
 
 import "./Transitions.scss";
-import { findCrop, getThreshold, PatternSettings } from "../SimpleTest/Pattern";
+import { PatternSettings } from "../SimpleTest/Pattern";
 
 import { items } from "./data";
+import { getThreshold, findCrop } from "../PatternBuilderFunctions";
 
 interface CustomFilters {
   grainEffect: PIXI.Filter;
