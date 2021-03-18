@@ -17,7 +17,7 @@ const App = () => {
           <Route path="/static">
             <SimpleTest />
           </Route>
-          <Route path="/transition">
+          <Route path="/transition/:designed">
             <Transitions
               settings={{
                 overlay: {
@@ -50,7 +50,8 @@ const Home = () => (
 
     <nav>
       <Link to="/static">Simple static test</Link>
-      <Link to="/transition">Transition tests</Link>
+      <Link to="/transition/multi">Transition tests</Link>
+      <Link to="/transition/single">Full Design Transition test</Link>
     </nav>
   </div>
 );

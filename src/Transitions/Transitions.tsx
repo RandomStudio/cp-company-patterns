@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as PIXI from "pixi.js";
 import { remap } from "@anselan/maprange";
 import { fromRGB, toHSLArray } from "hex-color-utils";
+import { RouteComponentProps } from "react-router";
 
 // @ts-ignore
 import ColorThief from "colorthief";
@@ -14,6 +15,7 @@ import { PatternSettings } from "../SimpleTest/Pattern";
 
 import { items } from "./data";
 import { getThreshold, findCrop } from "../PatternBuilderFunctions";
+import { useRouteMatch } from "react-router";
 
 interface CustomFilters {
   grainEffect: PIXI.Filter;
@@ -332,6 +334,10 @@ const prepareTransition = async (
 };
 
 export const Transitions = (props: Props) => {
+  // @ts-ignore
+  let match = useRouteMatch();
+  console.log("path match", match);
+
   const app = new PIXI.Application({
     width: props.canvasSize.width,
     height: props.canvasSize.height,
@@ -392,17 +398,26 @@ export const Transitions = (props: Props) => {
           ))}
         </div>
       )}
-      {itemIndex !== null && (
-        <Item
-          id={items[itemIndex].id}
-          index={itemIndex}
-          url={items[itemIndex].url}
-          debug={false}
-        />
-      )}
+
+      {itemIndex !== null &&
+        // @ts-ignore
+        SingleItemView(itemIndex, match.params["designed"] === "single")}
       <div className={`container ${active ? "active" : ""}`} ref={ref} />
     </div>
   );
 };
 
 export default Transitions;
+
+function SingleItemView(itemIndex: number, isSingle: boolean) {
+  return isSingle ? (
+    <div>Designed item page goes here</div>
+  ) : (
+    <Item
+      id={items[itemIndex].id}
+      index={itemIndex}
+      url={items[itemIndex].url}
+      debug={false}
+    />
+  );
+}

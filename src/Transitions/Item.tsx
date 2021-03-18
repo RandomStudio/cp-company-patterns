@@ -77,7 +77,7 @@ const Item = (props: Props) => {
           </div>
         )}
       <div>
-        <a href="/transition">Back</a>
+        <a href="/transition/multi">Back</a>
       </div>
     </div>
   );
